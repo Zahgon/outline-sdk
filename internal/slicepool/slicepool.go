@@ -31,38 +31,25 @@ type Pool struct {
 }
 
 // MakePool returns a Pool of slices with the specified length.
-func MakePool(sliceLen int) Pool {
-	return Pool{
-		pool: &sync.Pool{
-			New: func() interface{} {
-				slice := make([]byte, sliceLen)
-				// Return a *[]byte instead of []byte ensures that
-				// the []byte is not copied, which would cause a heap
-				// allocation on every call to sync.pool.Put
-				return &slice
-			},
-		},
-		len: sliceLen,
-	}
-}
+func MakePool(sliceLen int) Pool { _ = "STUB: not implemented"; return *new(Pool) }
 
-func (p *Pool) get() *[]byte {
-	return p.pool.Get().(*[]byte)
-}
+// Return a *[]byte instead of []byte ensures that
+// the []byte is not copied, which would cause a heap
+// allocation on every call to sync.pool.Put
 
-func (p *Pool) put(b *[]byte) {
-	if len(*b) != p.len || cap(*b) != p.len {
-		panic("Buffer length mismatch")
-	}
-	p.pool.Put(b)
-}
+func (p *Pool) get() *[]byte { _ = "STUB: not implemented"; return nil }
+
+func (p *Pool) put(b *[]byte) { _ = "STUB: not implemented"; return }
 
 // LazySlice returns an empty LazySlice tied to this Pool.
 func (p *Pool) LazySlice() LazySlice {
-	return LazySlice{pool: p}
+	_ = "STUB: not implemented"
+	return *
+
+	// LazySlice holds 0 or 1 slices from a particular Pool.
+	new(LazySlice)
 }
 
-// LazySlice holds 0 or 1 slices from a particular Pool.
 type LazySlice struct {
 	slice *[]byte
 	pool  *Pool
@@ -70,19 +57,8 @@ type LazySlice struct {
 
 // Acquire this slice from the pool and return it.
 // This slice must not already be acquired.
-func (b *LazySlice) Acquire() []byte {
-	if b.slice != nil {
-		panic("buffer already acquired")
-	}
-	b.slice = b.pool.get()
-	return *b.slice
-}
+func (b *LazySlice) Acquire() []byte { _ = "STUB: not implemented"; return nil }
 
 // Release the buffer back to the pool, unless the box is empty.
 // The caller must discard any references to the buffer.
-func (b *LazySlice) Release() {
-	if b.slice != nil {
-		b.pool.put(b.slice)
-		b.slice = nil
-	}
-}
+func (b *LazySlice) Release() { _ = "STUB: not implemented"; return }

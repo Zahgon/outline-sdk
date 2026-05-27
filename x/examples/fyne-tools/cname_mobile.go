@@ -26,48 +26,15 @@ import "C"
 
 import (
 	"context"
-	"fmt"
-	"unsafe"
 )
 
 func lookupCNAME(ctx context.Context, domain string) (string, error) {
-	type result struct {
-		cname string
-		err   error
-	}
-
-	results := make(chan result)
-	go func() {
-		cname, err := lookupCNAMEBlocking(domain)
-		results <- result{cname, err}
-	}()
-
-	select {
-	case r := <-results:
-		return r.cname, r.err
-	case <-ctx.Done():
-		return "", ctx.Err()
-	}
+	_ = "STUB: not implemented"
+	return "", nil
 }
 
-func lookupCNAMEBlocking(host string) (string, error) {
-	var hints C.struct_addrinfo
-	var result *C.struct_addrinfo
+func lookupCNAMEBlocking(host string) (string, error) { _ = "STUB: not implemented"; return "", nil }
 
-	chost := C.CString(host)
-	defer C.free(unsafe.Pointer(chost))
+// Call getaddrinfo
 
-	hints.ai_family = C.AF_UNSPEC
-	hints.ai_flags = C.AI_CANONNAME
-
-	// Call getaddrinfo
-	res := C.getaddrinfo(chost, nil, &hints, &result)
-	if res != 0 {
-		return "", fmt.Errorf("getaddrinfo error: %s", C.GoString(C.gai_strerror(res)))
-	}
-	defer C.freeaddrinfo(result)
-
-	// Extract canonical name
-	cname := C.GoString(result.ai_canonname)
-	return cname, nil
-}
+// Extract canonical name

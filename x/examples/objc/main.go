@@ -123,7 +123,6 @@ import (
 	"log/slog"
 	"net" // Added for network interfaces
 	"os"
-	"unsafe"
 
 	"golang.org/x/sys/unix"
 )
@@ -150,58 +149,22 @@ type ProcessInfo struct {
 // getProcessInfo is a Go wrapper function that calls the underlying C function
 // and converts the C struct into a Go struct.
 func getProcessInfo() (*ProcessInfo, error) {
+	_ = "STUB: not implemented"
 	// Call the C function to get the populated struct.
-	cInfo := C.get_all_process_info()
-
-	// Check if the C function returned NULL, which indicates an error.
-	if cInfo == nil {
-		return nil, fmt.Errorf("failed to get process info from NSProcessInfo")
-	}
-
-	// The memory for the C struct and its string members was allocated in C.
-	// We must free all of it to prevent memory leaks. The defer statements
-	// ensure C.free is called for each allocated piece of memory right
-	// before the function returns.
-	defer C.free(unsafe.Pointer(cInfo.processName))
-	defer C.free(unsafe.Pointer(cInfo.globallyUniqueString))
-	defer C.free(unsafe.Pointer(cInfo.operatingSystemVersionString))
-	defer C.free(unsafe.Pointer(cInfo.hostName))
-	defer C.free(unsafe.Pointer(cInfo.userName))
-	defer C.free(unsafe.Pointer(cInfo.fullUserName))
-	defer C.free(unsafe.Pointer(cInfo))
-
-	// Create a Go struct and copy the data from the C struct, converting types as needed.
-	goInfo := &ProcessInfo{
-		ProcessName:                  C.GoString(cInfo.processName),
-		ProcessIdentifier:            int(cInfo.processIdentifier),
-		GloballyUniqueString:         C.GoString(cInfo.globallyUniqueString),
-		OperatingSystemVersionString: C.GoString(cInfo.operatingSystemVersionString),
-		HostName:                     C.GoString(cInfo.hostName),
-		PhysicalMemoryBytes:          uint64(cInfo.physicalMemory),
-		SystemUptimeSeconds:          float64(cInfo.systemUptime),
-		ProcessorCount:               int(cInfo.processorCount),
-		ActiveProcessorCount:         int(cInfo.activeProcessorCount),
-		IsMacCatalystApp:             cInfo.isMacCatalystApp != 0,
-		IsIOSAppOnMac:                cInfo.isiOSAppOnMac != 0,
-		IsIOS:                        cInfo.isIOS != 0,
-		UserName:                     C.GoString(cInfo.userName),
-		FullUserName:                 C.GoString(cInfo.fullUserName),
-	}
-
-	return goInfo, nil
+	return nil, nil
 }
+
+// Check if the C function returned NULL, which indicates an error.
+
+// The memory for the C struct and its string members was allocated in C.
+// We must free all of it to prevent memory leaks. The defer statements
+// ensure C.free is called for each allocated piece of memory right
+// before the function returns.
+
+// Create a Go struct and copy the data from the C struct, converting types as needed.
 
 // CstrToString converts a null-terminated []int8 byte slice to a string.
-func CstrToString(arr []byte) string {
-	buf := make([]byte, 0, len(arr))
-	for _, v := range arr {
-		if v == 0x00 {
-			break
-		}
-		buf = append(buf, byte(v))
-	}
-	return string(buf)
-}
+func CstrToString(arr []byte) string { _ = "STUB: not implemented"; return "" }
 
 func main() {
 	fmt.Println("Attempting to get iOS process info using Cgo...")

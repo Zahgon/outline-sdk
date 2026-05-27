@@ -15,12 +15,10 @@
 package lwip2transport
 
 import (
-	"context"
-	"io"
 	"net"
 
-	"golang.getoutline.org/sdk/transport"
 	lwip "github.com/eycorsican/go-tun2socks/core"
+	"golang.getoutline.org/sdk/transport"
 )
 
 // Compilation guard against interface implementation
@@ -32,18 +30,16 @@ type tcpHandler struct {
 
 // newTCPHandler returns a Shadowsocks lwIP connection handler.
 func newTCPHandler(client transport.StreamDialer) *tcpHandler {
-	return &tcpHandler{client}
+	_ = "STUB: not implemented"
+	return nil
 }
 
 func (h *tcpHandler) Handle(conn net.Conn, target *net.TCPAddr) error {
-	proxyConn, err := h.dialer.DialStream(context.Background(), target.String())
-	if err != nil {
-		return err
-	}
-	// TODO: Request upstream to make `conn` a `core.TCPConn` so we can avoid this type assertion.
-	go relay(conn.(lwip.TCPConn), proxyConn)
+	_ = "STUB: not implemented"
 	return nil
 }
+
+// TODO: Request upstream to make `conn` a `core.TCPConn` so we can avoid this type assertion.
 
 // copyOneWay copies from rightConn to leftConn until either EOF is reached on rightConn or an error occurs.
 //
@@ -52,35 +48,19 @@ func (h *tcpHandler) Handle(conn net.Conn, target *net.TCPAddr) error {
 //
 // rightConn's read end and leftConn's write end will be closed after copyOneWay returns.
 func copyOneWay(leftConn, rightConn transport.StreamConn) (int64, error) {
-	n, err := io.Copy(leftConn, rightConn)
-	// Send FIN to indicate EOF
-	leftConn.CloseWrite()
-	// Release reader resources
-	rightConn.CloseRead()
-	return n, err
+	_ = "STUB: not implemented"
+	return 0, nil
 }
+
+// Send FIN to indicate EOF
+
+// Release reader resources
 
 // relay copies between left and right bidirectionally. Returns number of
 // bytes copied from right to left, from left to right, and any error occurred.
 // Relay allows for half-closed connections: if one side is done writing, it can
 // still read all remaining data from its peer.
 func relay(leftConn, rightConn transport.StreamConn) (int64, int64, error) {
-	type res struct {
-		N   int64
-		Err error
-	}
-	ch := make(chan res)
-
-	go func() {
-		n, err := copyOneWay(rightConn, leftConn)
-		ch <- res{n, err}
-	}()
-
-	n, err := copyOneWay(leftConn, rightConn)
-	rs := <-ch
-
-	if err == nil {
-		err = rs.Err
-	}
-	return n, rs.N, err
+	_ = "STUB: not implemented"
+	return 0, 0, nil
 }

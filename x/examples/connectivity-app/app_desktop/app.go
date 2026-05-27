@@ -16,8 +16,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 
 	"golang.getoutline.org/sdk/x/examples/outline-connectivity-app/shared_backend"
 )
@@ -29,32 +27,18 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	_ = "STUB: not implemented"
+
+	// startup is called when the app starts. The context is saved
+	// so we can call the runtime methods
+	return nil
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods
-func (a *App) startup(ctx context.Context) {
-	a.ctx = ctx
-}
+func (a *App) startup(ctx context.Context) { _ = "STUB: not implemented"; return }
 
 func (a *App) Request(resourceName string, parameters string) (shared_backend.Response, error) {
-	var response shared_backend.Response
-
-	request := shared_backend.Request{ResourceName: resourceName, Parameters: parameters}
-
-	rawRequest, requestSerializeError := json.Marshal(request)
-
-	if requestSerializeError != nil {
-		return response, errors.New("DesktopBackend.Request: failed to serialize request")
-	}
-
-	// TODO: make this non-blocking with goroutines/channels
-	responseParseError := json.Unmarshal(shared_backend.HandleRequest(rawRequest), &response)
-
-	if responseParseError != nil {
-		return response, errors.New("DesktopBackend.Request: failed to parse response")
-	}
-
-	return response, nil
+	_ = "STUB: not implemented"
+	return *new(shared_backend.Response), nil
 }
+
+// TODO: make this non-blocking with goroutines/channels

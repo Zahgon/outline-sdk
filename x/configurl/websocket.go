@@ -15,15 +15,9 @@
 package configurl
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"net"
 	"net/url"
-	"strings"
 
 	"golang.getoutline.org/sdk/transport"
-	"golang.getoutline.org/sdk/x/websocket"
 )
 
 type wsConfig struct {
@@ -32,75 +26,16 @@ type wsConfig struct {
 }
 
 func parseWSConfig(configURL url.URL) (*wsConfig, error) {
-	query := configURL.Opaque
-	values, err := url.ParseQuery(query)
-	if err != nil {
-		return nil, err
-	}
-	var cfg wsConfig
-	for key, values := range values {
-		switch strings.ToLower(key) {
-		case "tcp_path":
-			if len(values) != 1 {
-				return nil, fmt.Errorf("udp_path option must has one value, found %v", len(values))
-			}
-			cfg.tcpPath = values[0]
-		case "udp_path":
-			if len(values) != 1 {
-				return nil, fmt.Errorf("tcp_path option must has one value, found %v", len(values))
-			}
-			cfg.udpPath = values[0]
-		default:
-			return nil, fmt.Errorf("unsupported option %v", key)
-		}
-	}
-	return &cfg, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 func registerWebsocketStreamDialer(r TypeRegistry[transport.StreamDialer], typeID string, newSD BuildFunc[transport.StreamDialer]) {
-	r.RegisterType(typeID, func(ctx context.Context, config *Config) (transport.StreamDialer, error) {
-		sd, err := newSD(ctx, config.BaseConfig)
-		if err != nil {
-			return nil, err
-		}
-		wsConfig, err := parseWSConfig(config.URL)
-		if err != nil {
-			return nil, err
-		}
-		if wsConfig.tcpPath == "" {
-			return nil, errors.New("must specify tcp_path")
-		}
-		return transport.FuncStreamDialer(func(ctx context.Context, addr string) (transport.StreamConn, error) {
-			wsURL := url.URL{Scheme: "ws", Host: addr, Path: wsConfig.tcpPath}
-			connect, err := websocket.NewStreamEndpoint(wsURL.String(), &transport.StreamDialerEndpoint{Address: addr, Dialer: sd})
-			if err != nil {
-				return nil, fmt.Errorf("failed to create websocket stream endpoint: %w", err)
-			}
-			return connect(ctx)
-		}), nil
-	})
+	_ = "STUB: not implemented"
+	return
 }
 
 func registerWebsocketPacketDialer(r TypeRegistry[transport.PacketDialer], typeID string, newSD BuildFunc[transport.StreamDialer]) {
-	r.RegisterType(typeID, func(ctx context.Context, config *Config) (transport.PacketDialer, error) {
-		sd, err := newSD(ctx, config.BaseConfig)
-		if err != nil {
-			return nil, err
-		}
-		wsConfig, err := parseWSConfig(config.URL)
-		if err != nil {
-			return nil, err
-		}
-		if wsConfig.udpPath == "" {
-			return nil, errors.New("must specify udp_path")
-		}
-		return transport.FuncPacketDialer(func(ctx context.Context, addr string) (net.Conn, error) {
-			wsURL := url.URL{Scheme: "ws", Host: addr, Path: wsConfig.udpPath}
-			connect, err := websocket.NewPacketEndpoint(wsURL.String(), &transport.StreamDialerEndpoint{Address: addr, Dialer: sd})
-			if err != nil {
-				return nil, fmt.Errorf("failed to create websocket stream endpoint: %w", err)
-			}
-			return connect(ctx)
-		}), nil
-	})
+	_ = "STUB: not implemented"
+	return
 }

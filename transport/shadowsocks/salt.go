@@ -14,11 +14,6 @@
 
 package shadowsocks
 
-import (
-	"crypto/rand"
-	"errors"
-)
-
 // SaltGenerator generates unique salts to use in Shadowsocks connections.
 type SaltGenerator interface {
 	// Returns a new salt
@@ -29,10 +24,7 @@ type SaltGenerator interface {
 type randomSaltGenerator struct{}
 
 // GetSalt outputs a random salt.
-func (randomSaltGenerator) GetSalt(salt []byte) error {
-	_, err := rand.Read(salt)
-	return err
-}
+func (randomSaltGenerator) GetSalt(salt []byte) error { _ = "STUB: not implemented"; return nil }
 
 // RandomSaltGenerator is a basic SaltGenerator.
 var RandomSaltGenerator SaltGenerator = randomSaltGenerator{}
@@ -41,14 +33,7 @@ type prefixSaltGenerator struct {
 	prefix []byte
 }
 
-func (g prefixSaltGenerator) GetSalt(salt []byte) error {
-	n := copy(salt, g.prefix)
-	if n != len(g.prefix) {
-		return errors.New("prefix is too long")
-	}
-	_, err := rand.Read(salt[n:])
-	return err
-}
+func (g prefixSaltGenerator) GetSalt(salt []byte) error { _ = "STUB: not implemented"; return nil }
 
 // NewPrefixSaltGenerator returns a SaltGenerator with output including
 // the provided prefix, followed by random bytes. This is useful to change
@@ -62,5 +47,6 @@ func (g prefixSaltGenerator) GetSalt(salt []byte) error {
 // easily recover the shadowsocks key and decrypt all other connections to
 // this server.  Use with care!
 func NewPrefixSaltGenerator(prefix []byte) SaltGenerator {
-	return prefixSaltGenerator{prefix}
+	_ = "STUB: not implemented"
+	return *new(SaltGenerator)
 }

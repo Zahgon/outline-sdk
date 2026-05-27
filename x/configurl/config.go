@@ -16,10 +16,7 @@ package configurl
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"net/url"
-	"strings"
 )
 
 // Config is a pre-parsed generic config created from pipe-separated URLs.
@@ -50,63 +47,28 @@ var (
 
 // NewExtensibleProvider creates an [ExtensibleProvider] with the given base instance.
 func NewExtensibleProvider[ObjectType comparable](baseInstance ObjectType) ExtensibleProvider[ObjectType] {
-	return ExtensibleProvider[ObjectType]{
-		BaseInstance: baseInstance,
-		builders:     make(map[string]BuildFunc[ObjectType]),
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
 func (p *ExtensibleProvider[ObjectType]) ensureBuildersMap() map[string]BuildFunc[ObjectType] {
-	if p.builders == nil {
-		p.builders = make(map[string]BuildFunc[ObjectType])
-	}
-	return p.builders
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // RegisterType will register a factory for the given subtype.
 func (p *ExtensibleProvider[ObjectType]) RegisterType(subtype string, newInstance BuildFunc[ObjectType]) {
-	p.ensureBuildersMap()[subtype] = newInstance
+	_ = "STUB: not implemented"
+	return
 }
 
 // NewInstance creates a new instance of ObjectType according to the config.
 func (p *ExtensibleProvider[ObjectType]) NewInstance(ctx context.Context, config *Config) (ObjectType, error) {
-	var zero ObjectType
-	if config == nil {
-		if p.BaseInstance == zero {
-			return zero, errors.New("base instance is not configured")
-		}
-		return p.BaseInstance, nil
-	}
-
-	newInstance, ok := p.ensureBuildersMap()[config.URL.Scheme]
-	if !ok {
-		return zero, fmt.Errorf("config type '%v' is not registered", config.URL.Scheme)
-	}
-	return newInstance(ctx, config)
+	_ = "STUB: not implemented"
+	return *new(ObjectType), nil
 }
 
 // ParseConfig will parse a config given as a string and return the structured [Config].
-func ParseConfig(configText string) (*Config, error) {
-	parts := strings.Split(strings.TrimSpace(configText), "|")
-	if len(parts) == 1 && parts[0] == "" {
-		return nil, nil
-	}
+func ParseConfig(configText string) (*Config, error) { _ = "STUB: not implemented"; return nil, nil }
 
-	var config *Config = nil
-	for _, part := range parts {
-		part = strings.TrimSpace(part)
-		if part == "" {
-			return nil, errors.New("empty config part")
-		}
-		// Make it "<scheme>:" if it's only "<scheme>" to parse as a URL.
-		if !strings.Contains(part, ":") {
-			part += ":"
-		}
-		url, err := url.Parse(part)
-		if err != nil {
-			return nil, fmt.Errorf("part is not a valid URL: %w", err)
-		}
-		config = &Config{URL: *url, BaseConfig: config}
-	}
-	return config, nil
-}
+// Make it "<scheme>:" if it's only "<scheme>" to parse as a URL.

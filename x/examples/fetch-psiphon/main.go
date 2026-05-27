@@ -80,7 +80,7 @@ func main() {
 
 	// Start the Psiphon dialer.
 	dialer := psiphon.GetSingletonDialer()
-	ctx, cancel := context.WithTimeout(context.Background(), 30 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := dialer.Start(ctx, config); err != nil {
 		log.Fatalf("Could not start dialer: %v\n", err)

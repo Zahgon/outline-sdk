@@ -15,15 +15,9 @@
 package shadowsocks
 
 import (
-	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
-	"crypto/sha1"
-	"io"
-	"strings"
 
 	"golang.org/x/crypto/chacha20poly1305"
-	"golang.org/x/crypto/hkdf"
 )
 
 type cipherSpec struct {
@@ -56,9 +50,7 @@ type ErrUnsupportedCipher struct {
 	Name string
 }
 
-func (err ErrUnsupportedCipher) Error() string {
-	return "unsupported cipher " + err.Name
-}
+func (err ErrUnsupportedCipher) Error() string { _ = "STUB: not implemented"; return "" }
 
 // Largest tag size among the supported ciphers. Used by the TCP buffer pool
 const maxTagSize = 16
@@ -66,27 +58,11 @@ const maxTagSize = 16
 // CipherByName returns a [*Cipher] with the given name, or an error if the cipher is not supported.
 // The name must be the IETF name (as per https://www.iana.org/assignments/aead-parameters/aead-parameters.xhtml) or the
 // Shadowsocks alias from https://shadowsocks.org/guide/aead.html.
-func cipherByName(name string) (*cipherSpec, error) {
-	switch strings.ToUpper(name) {
-	case "AEAD_CHACHA20_POLY1305", "CHACHA20-IETF-POLY1305":
-		return chacha20IETFPOLY1305Cipher, nil
-	case "AEAD_AES_256_GCM", "AES-256-GCM":
-		return aes256GCMCipher, nil
-	case "AEAD_AES_192_GCM", "AES-192-GCM":
-		return aes192GCMCipher, nil
-	case "AEAD_AES_128_GCM", "AES-128-GCM":
-		return aes128GCMCipher, nil
-	default:
-		return nil, ErrUnsupportedCipher{name}
-	}
-}
+func cipherByName(name string) (*cipherSpec, error) { _ = "STUB: not implemented"; return nil, nil }
 
 func newAesGCM(key []byte) (cipher.AEAD, error) {
-	blk, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	return cipher.NewGCM(blk)
+	_ = "STUB: not implemented"
+	return *new(cipher.AEAD), nil
 }
 
 // EncryptionKey encapsulates a Shadowsocks AEAD spec and a secret
@@ -96,62 +72,31 @@ type EncryptionKey struct {
 }
 
 // SaltSize is the size of the salt for this Cipher
-func (c *EncryptionKey) SaltSize() int {
-	return c.cipher.saltSize
-}
+func (c *EncryptionKey) SaltSize() int { _ = "STUB: not implemented"; return 0 }
 
 // TagSize is the size of the AEAD tag for this Cipher
-func (c *EncryptionKey) TagSize() int {
-	return c.cipher.tagSize
-}
+func (c *EncryptionKey) TagSize() int { _ = "STUB: not implemented"; return 0 }
 
 var subkeyInfo = []byte("ss-subkey")
 
 // NewAEAD creates the AEAD for this cipher
 func (c *EncryptionKey) NewAEAD(salt []byte) (cipher.AEAD, error) {
-	sessionKey := make([]byte, c.cipher.keySize)
-	r := hkdf.New(sha1.New, c.secret, salt, subkeyInfo)
-	if _, err := io.ReadFull(r, sessionKey); err != nil {
-		return nil, err
-	}
-	return c.cipher.newInstance(sessionKey)
+	_ = "STUB: not implemented"
+	return *new(cipher.AEAD), nil
 }
 
 // Function definition at https://www.openssl.org/docs/manmaster/man3/EVP_BytesToKey.html
 func simpleEVPBytesToKey(data []byte, keyLen int) ([]byte, error) {
-	var derived, di []byte
-	h := md5.New()
-	for len(derived) < keyLen {
-		_, err := h.Write(di)
-		if err != nil {
-			return nil, err
-		}
-		_, err = h.Write(data)
-		if err != nil {
-			return nil, err
-		}
-		derived = h.Sum(derived)
-		di = derived[len(derived)-h.Size():]
-		h.Reset()
-	}
-	return derived[:keyLen], nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // NewEncryptionKey creates a Cipher with a cipher name and a secret.
 // The cipher name must be the IETF name (as per https://www.iana.org/assignments/aead-parameters/aead-parameters.xhtml)
 // or the Shadowsocks alias from https://shadowsocks.org/guide/aead.html.
 func NewEncryptionKey(cipherName string, secretText string) (*EncryptionKey, error) {
-	var key EncryptionKey
-	var err error
-	key.cipher, err = cipherByName(cipherName)
-	if err != nil {
-		return nil, err
-	}
-
-	// Key derivation as per https://shadowsocks.org/en/spec/AEAD-Ciphers.html
-	key.secret, err = simpleEVPBytesToKey([]byte(secretText), key.cipher.keySize)
-	if err != nil {
-		return nil, err
-	}
-	return &key, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// Key derivation as per https://shadowsocks.org/en/spec/AEAD-Ciphers.html

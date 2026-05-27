@@ -15,10 +15,6 @@
 package tlsfrag
 
 import (
-	"context"
-	"errors"
-	"io"
-
 	"golang.getoutline.org/sdk/transport"
 )
 
@@ -42,24 +38,8 @@ type FragFunc func(record []byte) (n int)
 // [TLS Client Hello]: https://datatracker.ietf.org/doc/html/rfc8446#section-4.1.2
 // [handshake record]: https://datatracker.ietf.org/doc/html/rfc8446#section-5.1
 func NewStreamDialerFunc(base transport.StreamDialer, frag FragFunc) (transport.StreamDialer, error) {
-	if base == nil {
-		return nil, errors.New("base dialer must not be nil")
-	}
-	if frag == nil {
-		return nil, errors.New("frag function must not be nil")
-	}
-	return transport.FuncStreamDialer(func(ctx context.Context, raddr string) (transport.StreamConn, error) {
-		baseConn, err := base.DialStream(ctx, raddr)
-		if err != nil {
-			return nil, err
-		}
-		conn, err := WrapConnFragFunc(baseConn, frag)
-		if err != nil {
-			baseConn.Close()
-			return nil, err
-		}
-		return conn, nil
-	}), nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamDialer), nil
 }
 
 // WrapConnFragFunc wraps the base [transport.StreamConn] and splits the first TLS Client Hello packet into two records
@@ -71,11 +51,8 @@ func NewStreamDialerFunc(base transport.StreamDialer, frag FragFunc) (transport.
 // If your goal is to simply fragment the Client Hello at a fixed position, [WrapConnFixedLen] is more efficient as it
 // won't allocate any additional buffers.
 func WrapConnFragFunc(base transport.StreamConn, frag FragFunc) (transport.StreamConn, error) {
-	w, err := newClientHelloFragWriter(base, frag)
-	if err != nil {
-		return nil, err
-	}
-	return transport.WrapConn(base, base, w), nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamConn), nil
 }
 
 // NewFixedLenStreamDialer is a [transport.StreamDialer] that fragments the [TLS handshake record]. It splits the
@@ -85,24 +62,8 @@ func WrapConnFragFunc(base transport.StreamConn, frag FragFunc) (transport.Strea
 //
 // [TLS handshake record]: https://datatracker.ietf.org/doc/html/rfc8446#section-5.1
 func NewFixedLenStreamDialer(base transport.StreamDialer, splitLen int) (transport.StreamDialer, error) {
-	if base == nil {
-		return nil, errors.New("base dialer must not be nil")
-	}
-	if splitLen == 0 {
-		return base, nil
-	}
-	return transport.FuncStreamDialer(func(ctx context.Context, raddr string) (transport.StreamConn, error) {
-		baseConn, err := base.DialStream(ctx, raddr)
-		if err != nil {
-			return nil, err
-		}
-		conn, err := WrapConnFixedLen(baseConn, splitLen)
-		if err != nil {
-			baseConn.Close()
-			return nil, err
-		}
-		return conn, nil
-	}), nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamDialer), nil
 }
 
 // WrapConnFixedLen wraps the base [transport.StreamConn] and splits the first TLS Client Hello record into two records
@@ -115,15 +76,6 @@ func NewFixedLenStreamDialer(base transport.StreamDialer, splitLen int) (transpo
 //
 // This is more efficient than [WrapConnFragFunc] because it doesn't allocate additional buffers.
 func WrapConnFixedLen(base transport.StreamConn, splitLen int) (conn transport.StreamConn, err error) {
-	var w io.Writer
-	if splitLen > 0 {
-		w, err = NewRecordLenFuncWriter(base, func(recordLen int) int { return splitLen })
-	} else {
-		w, err = NewRecordLenFuncWriter(base, func(recordLen int) int { return recordLen + splitLen })
-	}
-	if err != nil {
-		return
-	}
-	conn = transport.WrapConn(base, base, w)
-	return
+	_ = "STUB: not implemented"
+	return *new(transport.StreamConn), nil
 }

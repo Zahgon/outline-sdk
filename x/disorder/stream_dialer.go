@@ -16,12 +16,8 @@ package disorder
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"net"
 
 	"golang.getoutline.org/sdk/transport"
-	"golang.getoutline.org/sdk/x/sockopt"
 )
 
 type disorderDialer struct {
@@ -40,32 +36,12 @@ var _ transport.StreamDialer = (*disorderDialer)(nil)
 // * The next part of data is sent normally.
 // * Server notices the lost fragment and requests re-transmission of lost packet.
 func NewStreamDialer(dialer transport.StreamDialer, disorderPacketN int) (transport.StreamDialer, error) {
-	if dialer == nil {
-		return nil, errors.New("argument dialer must not be nil")
-	}
-	if disorderPacketN < 0 {
-		return nil, fmt.Errorf("disorder argument must be >= 0, got %d", disorderPacketN)
-	}
-	return &disorderDialer{dialer: dialer, disorderPacketN: disorderPacketN}, nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamDialer), nil
 }
 
 // DialStream implements [transport.StreamDialer].DialStream.
 func (d *disorderDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
-	innerConn, err := d.dialer.DialStream(ctx, remoteAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	tcpInnerConn, ok := innerConn.(*net.TCPConn)
-	if !ok {
-		return nil, fmt.Errorf("disorder strategy: expected base dialer to return TCPConn")
-	}
-	tcpOptions, err := sockopt.NewTCPOptions(tcpInnerConn)
-	if err != nil {
-		return nil, err
-	}
-
-	dw := NewWriter(innerConn, tcpOptions, d.disorderPacketN)
-
-	return transport.WrapConn(innerConn, innerConn, dw), nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamConn), nil
 }

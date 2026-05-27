@@ -16,7 +16,6 @@ package split
 
 import (
 	"context"
-	"errors"
 
 	"golang.getoutline.org/sdk/transport"
 )
@@ -32,20 +31,12 @@ var _ transport.StreamDialer = (*splitDialer)(nil)
 
 // NewStreamDialer creates a [transport.StreamDialer] that splits the outgoing stream according to nextSplit.
 func NewStreamDialer(dialer transport.StreamDialer, nextSplit SplitIterator) (transport.StreamDialer, error) {
-	if dialer == nil {
-		return nil, errors.New("argument dialer must not be nil")
-	}
-	if nextSplit == nil {
-		return nil, errors.New("argument nextSplit must not be nil")
-	}
-	return &splitDialer{dialer: dialer, nextSplit: nextSplit}, nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamDialer), nil
 }
 
 // DialStream implements [transport.StreamDialer].DialStream.
 func (d *splitDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
-	innerConn, err := d.dialer.DialStream(ctx, remoteAddr)
-	if err != nil {
-		return nil, err
-	}
-	return transport.WrapConn(innerConn, innerConn, NewWriter(innerConn, d.nextSplit)), nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamConn), nil
 }

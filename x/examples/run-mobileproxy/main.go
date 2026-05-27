@@ -15,34 +15,20 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 
-	"golang.getoutline.org/sdk/transport"
 	"golang.getoutline.org/sdk/x/mobileproxy"
 	"golang.getoutline.org/sdk/x/mobileproxy/psiphon"
-	"golang.getoutline.org/sdk/x/smart"
 )
 
 // RegisterErrorConfig registers a config that creates a dialer that always outputs an error.
 // The config looks like "error: my error message".
 func RegisterErrorConfig(opt *mobileproxy.SmartDialerOptions, name string) {
-	opt.RegisterFallbackParser(name, func(ctx context.Context, yamlNode smart.YAMLNode) (transport.StreamDialer, string, error) {
-		switch typed := yamlNode.(type) {
-		case string:
-			dialer := transport.FuncStreamDialer(func(ctx context.Context, addr string) (transport.StreamConn, error) {
-				return nil, errors.New(typed)
-			})
-			return dialer, typed, nil
-		default:
-			return nil, "", fmt.Errorf("invalid error dialer config")
-		}
-	})
+	_ = "STUB: not implemented"
+	return
 }
 
 func main() {

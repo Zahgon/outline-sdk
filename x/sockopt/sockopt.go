@@ -16,12 +16,7 @@
 package sockopt
 
 import (
-	"fmt"
 	"net"
-	"net/netip"
-
-	"golang.org/x/net/ipv4"
-	"golang.org/x/net/ipv6"
 )
 
 // HasHopLimit enables manipulation of the hop limit option.
@@ -38,13 +33,9 @@ type hopLimitOption struct {
 	setHopLimit func(hoplim int) error
 }
 
-func (o *hopLimitOption) HopLimit() (int, error) {
-	return o.hopLimit()
-}
+func (o *hopLimitOption) HopLimit() (int, error) { _ = "STUB: not implemented"; return 0, nil }
 
-func (o *hopLimitOption) SetHopLimit(hoplim int) error {
-	return o.setHopLimit(hoplim)
-}
+func (o *hopLimitOption) SetHopLimit(hoplim int) error { _ = "STUB: not implemented"; return nil }
 
 var _ HasHopLimit = (*hopLimitOption)(nil)
 
@@ -61,31 +52,12 @@ var _ TCPOptions = (*tcpOptions)(nil)
 
 // newHopLimit creates a hopLimitOption from a [net.Conn]. Works for both TCP or UDP.
 func newHopLimit(conn net.Conn) (*hopLimitOption, error) {
-	addr, err := netip.ParseAddrPort(conn.LocalAddr().String())
-	if err != nil {
-		return nil, err
-	}
-	opt := &hopLimitOption{}
-	switch {
-	case addr.Addr().Is4():
-		ipConn := ipv4.NewConn(conn)
-		opt.hopLimit = ipConn.TTL
-		opt.setHopLimit = ipConn.SetTTL
-	case addr.Addr().Is6():
-		ipConn := ipv6.NewConn(conn)
-		opt.hopLimit = ipConn.HopLimit
-		opt.setHopLimit = ipConn.SetHopLimit
-	default:
-		return nil, fmt.Errorf("address is not IPv4 or IPv6 (%v)", addr.Addr().String())
-	}
-	return opt, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // NewTCPOptions creates a [TCPOptions] for the given [net.TCPConn].
 func NewTCPOptions(conn *net.TCPConn) (TCPOptions, error) {
-	hopLimit, err := newHopLimit(conn)
-	if err != nil {
-		return nil, err
-	}
-	return &tcpOptions{hopLimitOption: *hopLimit}, nil
+	_ = "STUB: not implemented"
+	return *new(TCPOptions), nil
 }

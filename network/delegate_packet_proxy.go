@@ -51,24 +51,18 @@ type delegatePacketProxy struct {
 // NewDelegatePacketProxy creates a new [DelegatePacketProxy] that forwards calls to the `proxy` [PacketProxy].
 // The `proxy` must not be nil.
 func NewDelegatePacketProxy(proxy PacketProxy) (DelegatePacketProxy, error) {
-	if proxy == nil {
-		return nil, errInvalidProxy
-	}
-	dp := delegatePacketProxy{}
-	dp.proxy.Store(&proxy)
-	return &dp, nil
+	_ = "STUB: not implemented"
+	return *new(DelegatePacketProxy), nil
 }
 
 // NewSession implements PacketProxy.NewSession, and it will forward the call to the underlying PacketProxy.
 func (p *delegatePacketProxy) NewSession(respWriter PacketResponseReceiver) (PacketRequestSender, error) {
-	return (*p.proxy.Load()).NewSession(respWriter)
+	_ = "STUB: not implemented"
+	return *new(PacketRequestSender), nil
 }
 
 // SetProxy implements DelegatePacketProxy.SetProxy.
 func (p *delegatePacketProxy) SetProxy(proxy PacketProxy) error {
-	if proxy == nil {
-		return errInvalidProxy
-	}
-	p.proxy.Store(&proxy)
+	_ = "STUB: not implemented"
 	return nil
 }

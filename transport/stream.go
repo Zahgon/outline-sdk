@@ -39,38 +39,32 @@ type duplexConnAdaptor struct {
 
 var _ StreamConn = (*duplexConnAdaptor)(nil)
 
-func (dc *duplexConnAdaptor) Read(b []byte) (int, error) {
-	return dc.r.Read(b)
-}
+func (dc *duplexConnAdaptor) Read(b []byte) (int, error) { _ = "STUB: not implemented"; return 0, nil }
+
 func (dc *duplexConnAdaptor) WriteTo(w io.Writer) (int64, error) {
-	return io.Copy(w, dc.r)
+	_ = "STUB: not implemented"
+	return 0, nil
 }
-func (dc *duplexConnAdaptor) CloseRead() error {
-	return dc.StreamConn.CloseRead()
-}
-func (dc *duplexConnAdaptor) Write(b []byte) (int, error) {
-	return dc.w.Write(b)
-}
+
+func (dc *duplexConnAdaptor) CloseRead() error { _ = "STUB: not implemented"; return nil }
+
+func (dc *duplexConnAdaptor) Write(b []byte) (int, error) { _ = "STUB: not implemented"; return 0, nil }
+
 func (dc *duplexConnAdaptor) ReadFrom(r io.Reader) (int64, error) {
+	_ = "STUB: not implemented"
 	// Make sure we prefer ReadFrom. Otherwise io.Copy will try WriteTo first.
-	if rf, ok := dc.w.(io.ReaderFrom); ok {
-		return rf.ReadFrom(r)
-	}
-	return io.Copy(dc.w, r)
+	return 0, nil
 }
-func (dc *duplexConnAdaptor) CloseWrite() error {
-	return dc.StreamConn.CloseWrite()
-}
+
+func (dc *duplexConnAdaptor) CloseWrite() error { _ = "STUB: not implemented"; return nil }
 
 // WrapConn wraps an existing [StreamConn] with a new [io.Reader] and [io.Writer], but preserves the original
 // [StreamConn].CloseRead and [StreamConn].CloseWrite.
 func WrapConn(c StreamConn, r io.Reader, w io.Writer) StreamConn {
-	conn := c
+	_ = "STUB: not implemented"
+
 	// We special-case duplexConnAdaptor to avoid multiple levels of nesting.
-	if a, ok := c.(*duplexConnAdaptor); ok {
-		conn = a.StreamConn
-	}
-	return &duplexConnAdaptor{StreamConn: conn, r: r, w: w}
+	return *new(StreamConn)
 }
 
 // StreamEndpoint represents an endpoint that can be used to establish stream connections (like TCP) to a fixed
@@ -93,11 +87,8 @@ var _ StreamEndpoint = (*TCPEndpoint)(nil)
 
 // ConnectStream implements [StreamEndpoint].ConnectStream.
 func (e *TCPEndpoint) ConnectStream(ctx context.Context) (StreamConn, error) {
-	conn, err := e.Dialer.DialContext(ctx, "tcp", e.Address)
-	if err != nil {
-		return nil, err
-	}
-	return conn.(*net.TCPConn), nil
+	_ = "STUB: not implemented"
+	return *new(StreamConn), nil
 }
 
 // FuncStreamEndpoint is a [StreamEndpoint] that uses the given function to connect.
@@ -107,11 +98,13 @@ var _ StreamEndpoint = (*FuncStreamEndpoint)(nil)
 
 // ConnectStream implements the [StreamEndpoint] interface.
 func (f FuncStreamEndpoint) ConnectStream(ctx context.Context) (StreamConn, error) {
-	return f(ctx)
+	_ = "STUB: not implemented"
+
+	// StreamDialerEndpoint is a [StreamEndpoint] that connects to the specified address using the specified
+	// [StreamDialer].
+	return *new(StreamConn), nil
 }
 
-// StreamDialerEndpoint is a [StreamEndpoint] that connects to the specified address using the specified
-// [StreamDialer].
 type StreamDialerEndpoint struct {
 	Dialer  StreamDialer
 	Address string
@@ -121,7 +114,8 @@ var _ StreamEndpoint = (*StreamDialerEndpoint)(nil)
 
 // ConnectStream implements [StreamEndpoint].ConnectStream.
 func (e *StreamDialerEndpoint) ConnectStream(ctx context.Context) (StreamConn, error) {
-	return e.Dialer.DialStream(ctx, e.Address)
+	_ = "STUB: not implemented"
+	return *new(StreamConn), nil
 }
 
 // StreamDialer provides a way to dial a destination and establish stream connections.
@@ -140,11 +134,8 @@ type TCPDialer struct {
 var _ StreamDialer = (*TCPDialer)(nil)
 
 func (d *TCPDialer) DialStream(ctx context.Context, addr string) (StreamConn, error) {
-	conn, err := d.Dialer.DialContext(ctx, "tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	return conn.(*net.TCPConn), nil
+	_ = "STUB: not implemented"
+	return *new(StreamConn), nil
 }
 
 // FuncStreamDialer is a [StreamDialer] that uses the given function to dial.
@@ -154,5 +145,6 @@ var _ StreamDialer = (*FuncStreamDialer)(nil)
 
 // DialStream implements the [StreamDialer] interface.
 func (f FuncStreamDialer) DialStream(ctx context.Context, addr string) (StreamConn, error) {
-	return f(ctx, addr)
+	_ = "STUB: not implemented"
+	return *new(StreamConn), nil
 }

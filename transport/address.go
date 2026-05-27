@@ -15,7 +15,6 @@
 package transport
 
 import (
-	"fmt"
 	"net"
 )
 
@@ -24,13 +23,9 @@ type domainAddr struct {
 	address string
 }
 
-func (a *domainAddr) Network() string {
-	return a.network
-}
+func (a *domainAddr) Network() string { _ = "STUB: not implemented"; return "" }
 
-func (a *domainAddr) String() string {
-	return a.address
-}
+func (a *domainAddr) String() string { _ = "STUB: not implemented"; return "" }
 
 var _ net.Addr = (*domainAddr)(nil)
 
@@ -42,24 +37,6 @@ var _ net.Addr = (*domainAddr)(nil)
 // This is important because some of the standard library functions inspect the type of the address and might return an
 // "invalid argument" error if the type is not the correct one.
 func MakeNetAddr(network, address string) (net.Addr, error) {
-	host, port, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, err
-	}
-	portnum, err := net.LookupPort(network, port)
-	if err != nil {
-		return nil, err
-	}
-	hostIp := net.ParseIP(host)
-	if hostIp != nil {
-		switch network {
-		case "tcp":
-			return &net.TCPAddr{IP: hostIp, Port: portnum}, nil
-		case "udp":
-			return &net.UDPAddr{IP: hostIp, Port: portnum}, nil
-		default:
-			return nil, net.UnknownNetworkError(network)
-		}
-	}
-	return &domainAddr{network: network, address: net.JoinHostPort(host, fmt.Sprint(portnum))}, nil
+	_ = "STUB: not implemented"
+	return *new(net.Addr), nil
 }

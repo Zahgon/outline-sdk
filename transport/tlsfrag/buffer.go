@@ -41,32 +41,26 @@ var _ io.ReaderFrom = (*clientHelloBuffer)(nil)
 
 // newClientHelloBuffer creates and initializes a new buffer to receive a TLS Client Hello packet.
 func newClientHelloBuffer() *clientHelloBuffer {
+	_ = "STUB: not implemented"
 	// Allocate the 5 bytes header first, and then reallocate it to contain the entire packet later
-	return &clientHelloBuffer{
-		data:          make([]byte, 0, recordHeaderLen),
-		validationErr: nil,
-		bufrd:         bytes.NewReader(nil), // It will be Reset in Write
-	}
+	return nil
 }
+
+// It will be Reset in Write
 
 // Bytes returns the full Client Hello packet including both the 5 bytes header and the content.
 func (b *clientHelloBuffer) Bytes() []byte {
-	return b.data
+	_ = "STUB: not implemented"
+
+	// Write appends p to the buffer and returns the number of bytes actually used.
+	// If this data completes a valid TLS Client Hello, it returns errTLSClientHelloFullyReceived.
+	// If an invalid TLS Client Hello message is detected, it returns the error errInvalidTLSClientHello.
+	// If all bytes in p have been used and the buffer still requires more data to build a complete TLS Client Hello
+	// message, it returns (len(p), nil).
+	return nil
 }
 
-// Write appends p to the buffer and returns the number of bytes actually used.
-// If this data completes a valid TLS Client Hello, it returns errTLSClientHelloFullyReceived.
-// If an invalid TLS Client Hello message is detected, it returns the error errInvalidTLSClientHello.
-// If all bytes in p have been used and the buffer still requires more data to build a complete TLS Client Hello
-// message, it returns (len(p), nil).
-func (b *clientHelloBuffer) Write(p []byte) (int, error) {
-	b.bufrd.Reset(p)
-	n, err := b.ReadFrom(b.bufrd)
-	if err == nil && int(n) != len(p) {
-		err = io.ErrShortWrite
-	}
-	return int(n), err
-}
+func (b *clientHelloBuffer) Write(p []byte) (int, error) { _ = "STUB: not implemented"; return 0, nil }
 
 // ReadFrom reads all the data from r and appends it to this buffer until a complete Client Hello packet has been
 // received, or r returns EOF or error. It returns the number of bytes read. Any error except EOF encountered during
@@ -80,55 +74,11 @@ func (b *clientHelloBuffer) Write(p []byte) (int, error) {
 //
 // ReadFrom will hang indefinitely if r provides fewer than 5 bytes and doesn't return the io.EOF error (e.g., "PING").
 func (b *clientHelloBuffer) ReadFrom(r io.Reader) (n int64, err error) {
+	_ = "STUB: not implemented"
 	// Waiting to finish the header of 5 bytes
-	if len(b.data) < recordHeaderLen {
-		m, e := io.ReadFull(r, b.data[len(b.data):recordHeaderLen])
-		b.data = b.data[:len(b.data)+m]
-		n += int64(m)
-		if err = e; err != nil {
-			if err == io.EOF || err == io.ErrUnexpectedEOF {
-				err = nil
-			}
-			return
-		}
-
-		hdr, e := newTLSHandshakeRecordHeader(b.data)
-		if err = e; err != nil {
-			b.validationErr = err
-			return
-		}
-		if err = hdr.Validate(); err != nil {
-			b.validationErr = err
-			return
-		}
-		buf := make([]byte, 0, recordHeaderLen*2+hdr.PayloadLen())
-		b.data = append(buf, b.data...)
-	}
-
-	// If the buffer is already invalid
-	if b.validationErr != nil {
-		err = b.validationErr
-		return
-	}
-
-	// Waiting to finish the payload of cap(b.data)-5 bytes
-	for len(b.data) < cap(b.data)-recordHeaderLen {
-		m, e := r.Read(b.data[len(b.data) : cap(b.data)-recordHeaderLen])
-		b.data = b.data[:len(b.data)+m]
-		n += int64(m)
-
-		if len(b.data) == cap(b.data)-recordHeaderLen {
-			err = errTLSClientHelloFullyReceived
-			return
-		}
-		if err = e; err != nil {
-			if err == io.EOF {
-				err = nil
-			}
-			return
-		}
-	}
-
-	err = errTLSClientHelloFullyReceived
-	return
+	return 0, nil
 }
+
+// If the buffer is already invalid
+
+// Waiting to finish the payload of cap(b.data)-5 bytes

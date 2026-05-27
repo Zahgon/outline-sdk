@@ -8,14 +8,8 @@
 package report
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
-	"math"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"time"
@@ -27,16 +21,16 @@ type BadRequestError struct {
 }
 
 // Error returns the error message associated with the [BadRequestError].
-func (e BadRequestError) Error() string {
-	return e.Err.Error()
-}
+func (e BadRequestError) Error() string { _ = "STUB: not implemented"; return "" }
 
 // Unwrap returns the underlying error wrapped by the [BadRequestError].
 func (e BadRequestError) Unwrap() error {
-	return e.Err
+	_ = "STUB: not implemented"
+
+	// Report is an alias for any type of report.
+	return nil
 }
 
-// Report is an alias for any type of report.
 type Report any
 
 // HasSuccess is an interface that represents an object that has a success status.
@@ -61,14 +55,7 @@ type RemoteCollector struct {
 // If there is an error encoding the JSON or sending the report, it returns the error.
 // Otherwise, it returns nil.
 func (c *RemoteCollector) Collect(ctx context.Context, report Report) error {
-	jsonData, err := json.Marshal(report)
-	if err != nil {
-		return fmt.Errorf("failed to marshal JSON: %w", err)
-	}
-	err = c.sendReport(ctx, jsonData)
-	if err != nil {
-		return err
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
@@ -86,28 +73,11 @@ type SamplingCollector struct {
 // It returns an error if there is an issue collecting the report.
 // Sampling rate of 1.0 means report is always sent, and 0.0 means report is never sent.
 func (c *SamplingCollector) Collect(ctx context.Context, report Report) error {
-	var samplingRate float64
-	hs, ok := report.(HasSuccess)
-	if !ok {
-		return nil
-	}
-	if hs.IsSuccess() {
-		samplingRate = c.SuccessFraction
-	} else {
-		samplingRate = c.FailureFraction
-	}
-	// Generate a random float64 number between 0 and 1
-	random := rand.Float64()
-	if random < samplingRate {
-		err := c.Collector.Collect(ctx, report)
-		if err != nil {
-			return err
-		}
-		return nil
-	} else {
-		return nil
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// Generate a random float64 number between 0 and 1
 
 // RetryCollector represents a collector that supports retrying failed operations.
 type RetryCollector struct {
@@ -122,20 +92,8 @@ type RetryCollector struct {
 // It sleeps for a specified duration between retries.
 // Returns an error if the maximum number of retries is exceeded.
 func (c *RetryCollector) Collect(ctx context.Context, report Report) error {
-	var e *BadRequestError
-	for i := 0; i < c.MaxRetry+1; i++ {
-		err := c.Collector.Collect(ctx, report)
-		if err != nil {
-			if errors.As(err, &e) {
-				break
-			} else {
-				time.Sleep(time.Duration(math.Pow(2, float64(i))) * c.InitialDelay)
-			}
-		} else {
-			return nil
-		}
-	}
-	return errors.New("max retry exceeded")
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // FallbackCollector is a type that represents a collector that falls back to multiple collectors.
@@ -148,13 +106,8 @@ type FallbackCollector struct {
 // If any of the collectors succeeds in collecting the report, operation aborts, and it returns nil.
 // If all collectors fail to collect the report, it returns an error indicating the failure.
 func (c *FallbackCollector) Collect(ctx context.Context, report Report) error {
-	for i := range c.Collectors {
-		err := c.Collectors[i].Collect(ctx, report)
-		if err == nil {
-			return nil
-		}
-	}
-	return errors.New("all collectors failed")
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // sendReport sends a report to the remote collector.
@@ -162,27 +115,8 @@ func (c *FallbackCollector) Collect(ctx context.Context, report Report) error {
 // and a []byte containing the JSON data to be sent.
 // It returns an error if there was a problem sending the report or reading the response.
 func (c *RemoteCollector) sendReport(ctx context.Context, jsonData []byte) error {
+	_ = "STUB: not implemented"
 	// TODO: return status code of HTTP response
-	req, err := http.NewRequest("POST", c.CollectorURL.String(), bytes.NewReader(jsonData))
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	resp, err := c.HttpClient.Do(req.WithContext(ctx))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	_, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	if 400 <= resp.StatusCode && resp.StatusCode < 500 {
-		return &BadRequestError{
-			Err: fmt.Errorf("http request failed with status code %d", resp.StatusCode),
-		}
-	}
 	return nil
 }
 
@@ -194,13 +128,6 @@ type WriteCollector struct {
 // Collect writes the report to the underlying io.Writer.
 // It returns an error if there was a problem writing the report.
 func (c *WriteCollector) Collect(ctx context.Context, report Report) error {
-	jsonData, err := json.Marshal(report)
-	if err != nil {
-		return fmt.Errorf("failed to marshal JSON: %w", err)
-	}
-	_, err = fmt.Fprintln(c.Writer, string(jsonData))
-	if err != nil {
-		return err
-	}
+	_ = "STUB: not implemented"
 	return nil
 }

@@ -14,11 +14,6 @@
 
 package shared_backend
 
-import (
-	"encoding/json"
-	"fmt"
-)
-
 // TODO: generalize via reflection/generics and move to infrastructure
 type Request struct {
 	ResourceName string `json:"resourceName"`
@@ -30,53 +25,4 @@ type Response struct {
 	Error string `json:"error"`
 }
 
-func HandleRequest(rawRequest []byte) []byte {
-	var request Request
-
-	unmarshallRequestError := json.Unmarshal(rawRequest, &request)
-
-	var response Response
-
-	if unmarshallRequestError != nil {
-		response.Error = "HandleRequest: error parsing raw input string"
-	}
-
-	var result interface{}
-	var resultError error
-
-	if request.ResourceName == "ConnectivityTest" {
-		var parameters ConnectivityTestRequest
-
-		unmarshallingParametersError := json.Unmarshal([]byte(request.Parameters), &parameters)
-
-		if unmarshallingParametersError != nil {
-			response.Error = "HandleRequest: error parsing method input"
-		}
-
-		result, resultError = ConnectivityTest(parameters)
-	} else if request.ResourceName == "Platform" {
-		result = Platform()
-	} else {
-		response.Error = "HandleRequest: method name not found"
-	}
-
-	if resultError != nil {
-		response.Error = resultError.Error()
-	}
-
-	rawBody, marshallingBodyError := json.Marshal(result)
-
-	if marshallingBodyError != nil {
-		response.Error = "HandleRequest: error serializing method result"
-	}
-
-	response.Body = string(rawBody)
-
-	rawResponse, marshallingResponseError := json.Marshal(response)
-
-	if marshallingResponseError != nil {
-		fmt.Println("[ERROR] failed to properly marshal HandleRequest output")
-	}
-
-	return rawResponse
-}
+func HandleRequest(rawRequest []byte) []byte { _ = "STUB: not implemented"; return nil }

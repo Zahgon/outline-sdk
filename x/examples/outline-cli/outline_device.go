@@ -15,15 +15,9 @@
 package main
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"net"
-	"net/url"
-	"strings"
 
 	"golang.getoutline.org/sdk/network"
-	"golang.getoutline.org/sdk/network/lwip2transport"
 	"golang.getoutline.org/sdk/transport"
 	"golang.getoutline.org/sdk/x/configurl"
 )
@@ -43,63 +37,19 @@ type OutlineDevice struct {
 var configModule = configurl.NewDefaultProviders()
 
 func NewOutlineDevice(transportConfig string) (od *OutlineDevice, err error) {
-	ip, err := resolveShadowsocksServerIPFromConfig(transportConfig)
-	if err != nil {
-		return nil, err
-	}
-	od = &OutlineDevice{
-		svrIP: ip,
-	}
-
-	if od.sd, err = configModule.NewStreamDialer(context.TODO(), transportConfig); err != nil {
-		return nil, fmt.Errorf("failed to create TCP dialer: %w", err)
-	}
-	if od.pp, err = newOutlinePacketProxy(transportConfig); err != nil {
-		return nil, fmt.Errorf("failed to create delegate UDP proxy: %w", err)
-	}
-	if od.IPDevice, err = lwip2transport.ConfigureDevice(od.sd, od.pp); err != nil {
-		return nil, fmt.Errorf("failed to configure lwIP: %w", err)
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
-func (d *OutlineDevice) Close() error {
-	return d.IPDevice.Close()
-}
+func (d *OutlineDevice) Close() error { _ = "STUB: not implemented"; return nil }
 
-func (d *OutlineDevice) Refresh() error {
-	return d.pp.testConnectivityAndRefresh(connectivityTestResolver, connectivityTestDomain)
-}
+func (d *OutlineDevice) Refresh() error { _ = "STUB: not implemented"; return nil }
 
-func (d *OutlineDevice) GetServerIP() net.IP {
-	return d.svrIP
-}
+func (d *OutlineDevice) GetServerIP() net.IP { _ = "STUB: not implemented"; return *new(net.IP) }
 
 func resolveShadowsocksServerIPFromConfig(transportConfig string) (net.IP, error) {
-	if strings.Contains(transportConfig, "|") {
-		return nil, errors.New("multi-part config is not supported")
-	}
-	if transportConfig = strings.TrimSpace(transportConfig); transportConfig == "" {
-		return nil, errors.New("config is required")
-	}
-	url, err := url.Parse(transportConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse config: %w", err)
-	}
-	if url.Scheme != "ss" {
-		return nil, errors.New("config must start with 'ss://'")
-	}
-	ipList, err := net.LookupIP(url.Hostname())
-	if err != nil {
-		return nil, fmt.Errorf("invalid server hostname: %w", err)
-	}
-
-	// todo: we only tested IPv4 routing table, need to test IPv6 in the future
-	for _, ip := range ipList {
-		if ip = ip.To4(); ip != nil {
-			return ip, nil
-		}
-	}
-	return nil, errors.New("IPv6 only Shadowsocks server is not supported yet")
+	_ = "STUB: not implemented"
+	return *new(net.IP), nil
 }
+
+// todo: we only tested IPv4 routing table, need to test IPv6 in the future

@@ -15,13 +15,7 @@
 package httpproxy
 
 import (
-	"context"
-	"fmt"
-	"io"
-	"net"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"golang.getoutline.org/sdk/transport"
 )
@@ -33,57 +27,16 @@ type pathHandler struct {
 var _ http.Handler = (*pathHandler)(nil)
 
 func (h *pathHandler) ServeHTTP(proxyResp http.ResponseWriter, proxyReq *http.Request) {
-	requestURL := strings.TrimPrefix(proxyReq.URL.Path, "/")
-	if requestURL == "" {
-		http.Error(proxyResp, "Empty URL", http.StatusBadRequest)
-		return
-	}
-	if proxyReq.URL.RawQuery != "" {
-		requestURL += "?" + proxyReq.URL.RawQuery
-	}
-	targetURL, err := url.Parse(requestURL)
-	if err != nil {
-		http.Error(proxyResp, "Invalid target URL", http.StatusBadRequest)
-		return
-	}
-	// We create a new request that uses the path of the proxy request.
-	targetReq, err := http.NewRequestWithContext(proxyReq.Context(), proxyReq.Method, targetURL.String(), proxyReq.Body)
-	if err != nil {
-		http.Error(proxyResp, "Error creating target request", http.StatusInternalServerError)
-		return
-	}
-	for key, values := range proxyReq.Header {
-		for _, value := range values {
-			// Host header is set by the HTTP client in client.Do.
-			targetReq.Header.Add(key, value)
-		}
-	}
-	targetResp, err := h.client.Do(targetReq)
-	if err != nil {
-		http.Error(proxyResp, "Failed to fetch destination", http.StatusServiceUnavailable)
-		return
-	}
-	defer targetResp.Body.Close()
-	for key, values := range targetResp.Header {
-		for _, value := range values {
-			proxyResp.Header().Add(key, value)
-		}
-	}
-	proxyResp.WriteHeader(targetResp.StatusCode)
-	_, err = io.Copy(proxyResp, targetResp.Body)
-	if err != nil {
-		http.Error(proxyResp, "Failed write response", http.StatusServiceUnavailable)
-		return
-	}
+	_ = "STUB: not implemented"
+	return
 }
+
+// We create a new request that uses the path of the proxy request.
+
+// Host header is set by the HTTP client in client.Do.
 
 // NewPathHandler creates a [http.Handler] that resolves the URL path as an absolute URL using the given [http.Client].
 func NewPathHandler(dialer transport.StreamDialer) http.Handler {
-	dialContext := func(ctx context.Context, network, addr string) (net.Conn, error) {
-		if !strings.HasPrefix(network, "tcp") {
-			return nil, fmt.Errorf("protocol not supported: %v", network)
-		}
-		return dialer.DialStream(ctx, addr)
-	}
-	return &pathHandler{http.Client{Transport: &http.Transport{DialContext: dialContext}}}
+	_ = "STUB: not implemented"
+	return *new(http.Handler)
 }

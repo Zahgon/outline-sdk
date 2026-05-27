@@ -16,24 +16,16 @@ package shadowsocks
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"golang.getoutline.org/sdk/transport"
-	"github.com/shadowsocks/go-shadowsocks2/socks"
 )
 
 // NewStreamDialer creates a client that routes connections to a Shadowsocks proxy listening at
 // the given StreamEndpoint, with `key` as the Shadowsocks encyption key.
 func NewStreamDialer(endpoint transport.StreamEndpoint, key *EncryptionKey) (*StreamDialer, error) {
-	if endpoint == nil {
-		return nil, errors.New("argument endpoint must not be nil")
-	}
-	if key == nil {
-		return nil, errors.New("argument key must not be nil")
-	}
-	d := StreamDialer{endpoint: endpoint, key: key, ClientDataWait: 10 * time.Millisecond}
-	return &d, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type StreamDialer struct {
@@ -79,26 +71,6 @@ var _ transport.StreamDialer = (*StreamDialer)(nil)
 // all in one packet. This makes the size of the initial packet hard to predict, avoiding packet size
 // fingerprinting. We can only get the application initial data if we return a connection first.
 func (c *StreamDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
-	socksTargetAddr := socks.ParseAddr(remoteAddr)
-	if socksTargetAddr == nil {
-		return nil, errors.New("failed to parse target address")
-	}
-	proxyConn, err := c.endpoint.ConnectStream(ctx)
-	if err != nil {
-		return nil, err
-	}
-	ssw := NewWriter(proxyConn, c.key)
-	if c.SaltGenerator != nil {
-		ssw.SetSaltGenerator(c.SaltGenerator)
-	}
-	_, err = ssw.LazyWrite(socksTargetAddr)
-	if err != nil {
-		proxyConn.Close()
-		return nil, errors.New("failed to write target address")
-	}
-	time.AfterFunc(c.ClientDataWait, func() {
-		ssw.Flush()
-	})
-	ssr := NewReader(proxyConn, c.key)
-	return transport.WrapConn(proxyConn, ssr, ssw), nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamConn), nil
 }

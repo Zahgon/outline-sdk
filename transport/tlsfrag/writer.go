@@ -16,7 +16,6 @@ package tlsfrag
 
 import (
 	"bytes"
-	"errors"
 	"io"
 )
 
@@ -58,53 +57,22 @@ var _ io.ReaderFrom = (*clientHelloFragReaderFrom)(nil)
 // If you just want to split the record at a fixed position (e.g., always at the 5th byte or 2nd from the last
 // byte), use [NewRecordLenFuncWriter]. It consumes less resources and is more efficient.
 func newClientHelloFragWriter(base io.Writer, frag FragFunc) (io.Writer, error) {
-	if base == nil {
-		return nil, errors.New("base writer must not be nil")
-	}
-	if frag == nil {
-		return nil, errors.New("frag callback function must not be nil")
-	}
-	fw := &clientHelloFragWriter{
-		base:     base,
-		frag:     frag,
-		helloBuf: newClientHelloBuffer(),
-	}
-	if rf, ok := base.(io.ReaderFrom); ok {
-		return &clientHelloFragReaderFrom{fw, rf}, nil
-	}
-	return fw, nil
+	_ = "STUB: not implemented"
+	return *new(io.Writer), nil
 }
 
 // Write implements io.Writer.Write. It attempts to split the data received in the first one or more Write call(s)
 // into two TLS records if the data corresponds to a TLS Client Hello record.
 func (w *clientHelloFragWriter) Write(p []byte) (n int, err error) {
-	if !w.done {
-		// not yet splitted, append to the buffer
-		if w.record == nil {
-			if n, err = w.helloBuf.Write(p); err == nil {
-				// all written, but Client Hello is not fully received yet
-				return
-			}
-			p = p[n:]
-			if errors.Is(err, errTLSClientHelloFullyReceived) {
-				w.splitHelloBufToRecord()
-			} else {
-				w.copyHelloBufToRecord()
-			}
-		}
-		// already splitted (but previous Writes might fail), try to flush all remaining w.record to w.base
-		if _, err = w.flushRecord(); err != nil {
-			return
-		}
-	}
+	_ = "STUB: not implemented"
 
-	if len(p) > 0 {
-		m, e := w.base.Write(p)
-		n += m
-		err = e
-	}
-	return
+	// not yet splitted, append to the buffer
+	return 0, nil
 }
+
+// all written, but Client Hello is not fully received yet
+
+// already splitted (but previous Writes might fail), try to flush all remaining w.record to w.base
 
 // ReadFrom implements io.ReaderFrom.ReadFrom. It attempts to split the first packet into two TLS records if the data
 // corresponds to a TLS Client Hello record. And then copies the remaining data from r to the base io.Writer until EOF
@@ -116,79 +84,42 @@ func (w *clientHelloFragWriter) Write(p []byte) (n int, err error) {
 //
 // ReadFrom will hang indefinitely if r provides fewer than 5 bytes and doesn't return the io.EOF error (e.g., "PING").
 func (w *clientHelloFragReaderFrom) ReadFrom(r io.Reader) (n int64, err error) {
-	if !w.done {
-		// not yet splitted, append to the buffer
-		if w.record == nil {
-			if n, err = w.helloBuf.ReadFrom(r); err == nil {
-				// EOF, but Client Hello is not fully received yet
-				return
-			}
-			if errors.Is(err, errTLSClientHelloFullyReceived) {
-				w.splitHelloBufToRecord()
-			} else {
-				w.copyHelloBufToRecord()
-			}
-		}
-		// already splitted (but previous Writes might fail), try to flush all remaining w.record to w.base
-		if _, err = w.flushRecord(); err != nil {
-			return
-		}
-	}
+	_ = "STUB: not implemented"
 
-	m, e := w.baseRF.ReadFrom(r)
-	n += m
-	err = e
-	return
+	// not yet splitted, append to the buffer
+	return 0, nil
 }
+
+// EOF, but Client Hello is not fully received yet
+
+// already splitted (but previous Writes might fail), try to flush all remaining w.record to w.base
 
 // copyHelloBufToRecord copies w.helloBuf into w.record without allocations.
-func (w *clientHelloFragWriter) copyHelloBufToRecord() {
-	w.record = bytes.NewBuffer(w.helloBuf.Bytes())
-	w.helloBuf = nil // allows the GC to recycle the memory
-}
+func (w *clientHelloFragWriter) copyHelloBufToRecord() { _ = "STUB: not implemented"; return }
+
+// allows the GC to recycle the memory
 
 // splitHelloBufToRecord splits w.helloBuf into two records and put them into w.record without allocations.
-func (w *clientHelloFragWriter) splitHelloBufToRecord() {
-	original := w.helloBuf.Bytes()
-	content := original[recordHeaderLen:]
-	headLen := w.frag(content)
-	if headLen <= 0 || headLen >= len(content) {
-		w.copyHelloBufToRecord()
-		return
-	}
-	tailLen := len(content) - headLen
+func (w *clientHelloFragWriter) splitHelloBufToRecord() { _ = "STUB: not implemented"; return }
 
-	//           |  header   |         payload         |  cap==len+5
-	// original: | <= (5) => | <= head => | <= tail => | <= (5) => |
-	//                       |            |\            \
-	//                       |            | \-------\    \-------\
-	//                       |            |          \            \
-	// splitted: | <= (5) => | <= head => | <= (5) => | <= tail => |
-	//           |  header1  |  payload1  |  header2  |  payload2  |
-	splitted := original[:len(original)+recordHeaderLen]
-	hdr1, _ := newTLSHandshakeRecordHeader(splitted[:recordHeaderLen])
-	hdr1.SetPayloadLen(uint16(headLen))
+//           |  header   |         payload         |  cap==len+5
+// original: | <= (5) => | <= head => | <= tail => | <= (5) => |
+//                       |            |\            \
+//                       |            | \-------\    \-------\
+//                       |            |          \            \
+// splitted: | <= (5) => | <= head => | <= (5) => | <= tail => |
+//           |  header1  |  payload1  |  header2  |  payload2  |
 
-	// Shift tail fragment to make space for record header.
-	tail := original[recordHeaderLen+headLen:]
-	payload2 := splitted[recordHeaderLen*2+headLen:]
-	copy(payload2, tail)
+// Shift tail fragment to make space for record header.
 
-	// Insert header for second fragment.
-	hdr2, _ := newTLSHandshakeRecordHeader(splitted[recordHeaderLen+headLen : recordHeaderLen*2+headLen])
-	copy(hdr2, hdr1)
-	hdr2.SetPayloadLen(uint16(tailLen))
+// Insert header for second fragment.
 
-	w.record = bytes.NewBuffer(splitted)
-	w.helloBuf = nil // allows the GC to recycle the memory
-}
+// allows the GC to recycle the memory
 
 // flushRecord writes all bytes from w.record to base.
 func (w *clientHelloFragWriter) flushRecord() (int, error) {
-	n, err := io.Copy(w.base, w.record)
-	if w.record.Len() == 0 {
-		w.record = nil // allows the GC to recycle the memory
-		w.done = true
-	}
-	return int(n), err
+	_ = "STUB: not implemented"
+	return 0, nil
 }
+
+// allows the GC to recycle the memory

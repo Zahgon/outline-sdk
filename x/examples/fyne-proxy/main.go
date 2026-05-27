@@ -15,23 +15,17 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"log"
-	"net"
 	"net/http"
-	"syscall"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"golang.getoutline.org/sdk/transport"
-	"golang.getoutline.org/sdk/x/config"
-	"golang.getoutline.org/sdk/x/httpproxy"
 )
 
 type runningProxy struct {
@@ -40,50 +34,22 @@ type runningProxy struct {
 }
 
 func (p *runningProxy) Close() {
-	p.server.Close()
+	_ = "STUB: not implemented"
+
+	// newFilteredStreamDialer creates a direct [transport.StreamDialer] that blocks
+	// non public IPs to prevent access to localhost or the local network.
+	return
 }
 
-// newFilteredStreamDialer creates a direct [transport.StreamDialer] that blocks
-// non public IPs to prevent access to localhost or the local network.
 func newFilteredStreamDialer() transport.StreamDialer {
-	var dialer net.Dialer
-	dialer.Control = func(network, address string, c syscall.RawConn) error {
-		host, _, err := net.SplitHostPort(address)
-		if err != nil {
-			return fmt.Errorf("failed to parse address: %w", err)
-		}
-		if ip := net.ParseIP(host); ip != nil {
-			if !ip.IsGlobalUnicast() {
-				return fmt.Errorf("addresses that are not global unicast are fobidden")
-			}
-			if ip.IsPrivate() {
-				return fmt.Errorf("private addresses are forbidden")
-			}
-		}
-		return nil
-	}
-	return &transport.TCPDialer{Dialer: dialer}
+	_ = "STUB: not implemented"
+	return *new(transport.StreamDialer)
 }
 
 func runServer(address, transport string) (*runningProxy, error) {
+	_ = "STUB: not implemented"
 	// TODO: block localhost, maybe local net.
-	dialer, err := config.WrapStreamDialer(newFilteredStreamDialer(), transport)
-	if err != nil {
-		return nil, fmt.Errorf("could not create dialer: %w", err)
-	}
-
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
-		return nil, fmt.Errorf("could not listen on address %v: %w", address, err)
-	}
-
-	server := http.Server{Handler: httpproxy.NewProxyHandler(dialer)}
-	go func() {
-		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
-			log.Printf("Serve failed: %v\n", err)
-		}
-	}()
-	return &runningProxy{server: &server, Address: listener.Addr().String()}, nil
+	return nil, nil
 }
 
 type appTheme struct {
@@ -93,37 +59,11 @@ type appTheme struct {
 const ColorNameOnPrimary = "OnPrimary"
 
 func (t *appTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
-	switch name {
-	case theme.ColorNameHeaderBackground:
-		return t.Color(theme.ColorNamePrimary, variant)
-	case theme.ColorNamePrimary:
-		if variant == theme.VariantLight {
-			return color.RGBA{R: 0x00, G: 0x67, B: 0x7F, A: 255}
-		} else {
-			return color.RGBA{R: 0x7C, G: 0xD2, B: 0xF0, A: 255}
-		}
-	case ColorNameOnPrimary:
-		if variant == theme.VariantLight {
-			return color.White
-		} else {
-			return color.RGBA{R: 0x00, G: 0x35, B: 0x43, A: 255}
-		}
-	default:
-		return t.Theme.Color(name, variant)
-	}
+	_ = "STUB: not implemented"
+	return *new(color.Color)
 }
 
-func makeAppHeader(title string) *fyne.Container {
-	titleLabel := &widget.RichText{Scroll: container.ScrollNone, Segments: []widget.RichTextSegment{
-		&widget.TextSegment{Text: title, Style: widget.RichTextStyle{
-			Alignment: fyne.TextAlignCenter,
-			ColorName: ColorNameOnPrimary,
-			SizeName:  theme.SizeNameHeadingText,
-			TextStyle: fyne.TextStyle{Bold: true},
-		}},
-	}}
-	return container.NewStack(canvas.NewRectangle(theme.HeaderBackgroundColor()), titleLabel)
-}
+func makeAppHeader(title string) *fyne.Container { _ = "STUB: not implemented"; return nil }
 
 func main() {
 	fyneApp := app.New()

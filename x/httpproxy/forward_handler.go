@@ -15,12 +15,7 @@
 package httpproxy
 
 import (
-	"context"
-	"fmt"
-	"io"
-	"net"
 	"net/http"
-	"strings"
 
 	"golang.getoutline.org/sdk/transport"
 )
@@ -32,46 +27,14 @@ type forwardHandler struct {
 var _ http.Handler = (*forwardHandler)(nil)
 
 func (h *forwardHandler) ServeHTTP(proxyResp http.ResponseWriter, proxyReq *http.Request) {
-	if proxyReq.URL.Host == "" {
-		http.Error(proxyResp, "Must specify an absolute request target", http.StatusNotFound)
-		return
-	}
-	// We create a new request that uses a relative path + Host header, instead of the absolute URL in the proxy request.
-	targetReq, err := http.NewRequestWithContext(proxyReq.Context(), proxyReq.Method, proxyReq.URL.String(), proxyReq.Body)
-	if err != nil {
-		http.Error(proxyResp, "Error creating target request", http.StatusInternalServerError)
-		return
-	}
-	for key, values := range proxyReq.Header {
-		for _, value := range values {
-			targetReq.Header.Add(key, value)
-		}
-	}
-	targetResp, err := h.client.Do(targetReq)
-	if err != nil {
-		http.Error(proxyResp, "Failed to fetch destination", http.StatusServiceUnavailable)
-		return
-	}
-	defer targetResp.Body.Close()
-	for key, values := range targetResp.Header {
-		for _, value := range values {
-			proxyResp.Header().Add(key, value)
-		}
-	}
-	_, err = io.Copy(proxyResp, targetResp.Body)
-	if err != nil {
-		http.Error(proxyResp, "Failed write response", http.StatusServiceUnavailable)
-		return
-	}
+	_ = "STUB: not implemented"
+	return
 }
+
+// We create a new request that uses a relative path + Host header, instead of the absolute URL in the proxy request.
 
 // NewForwardHandler creates a [http.Handler] that handles absolute HTTP requests using the given [http.Client].
 func NewForwardHandler(dialer transport.StreamDialer) http.Handler {
-	dialContext := func(ctx context.Context, network, addr string) (net.Conn, error) {
-		if !strings.HasPrefix(network, "tcp") {
-			return nil, fmt.Errorf("protocol not supported: %v", network)
-		}
-		return dialer.DialStream(ctx, addr)
-	}
-	return &forwardHandler{http.Client{Transport: &http.Transport{DialContext: dialContext}}}
+	_ = "STUB: not implemented"
+	return *new(http.Handler)
 }

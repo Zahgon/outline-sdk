@@ -16,8 +16,4 @@
 
 package main
 
-import "errors"
-
-func (App) Run() error {
-	return errors.New("platform not supported")
-}
+func (App) Run() error { _ = "STUB: not implemented"; return nil }

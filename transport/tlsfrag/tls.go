@@ -14,11 +14,6 @@
 
 package tlsfrag
 
-import (
-	"encoding/binary"
-	"errors"
-)
-
 type tlsHandshakeRecordHeader []byte
 
 // TLS record layout from [RFC 8446]:
@@ -56,34 +51,15 @@ const (
 )
 
 func newTLSHandshakeRecordHeader(p []byte) (tlsHandshakeRecordHeader, error) {
-	if len(p) < recordHeaderLen {
-		return nil, errors.New("HandshakeRecordHeader requires at least 5 bytes")
-	}
-	return tlsHandshakeRecordHeader(p), nil
+	_ = "STUB: not implemented"
+	return *new(tlsHandshakeRecordHeader), nil
 }
 
-func (h tlsHandshakeRecordHeader) Validate() error {
-	if h[0] != recordTypeHandshake {
-		return errors.New("record type must be handshake")
-	}
-	version := binary.BigEndian.Uint16(h[1:3])
-	if version != versionTLS10 && version != versionTLS11 && version != versionTLS12 && version != versionTLS13 {
-		return errors.New("invalid TLS version")
-	}
-	if len := h.PayloadLen(); len == 0 || len > maxRecordPayloadLen {
-		return errors.New("record length out of range")
-	}
-	return nil
-}
+func (h tlsHandshakeRecordHeader) Validate() error { _ = "STUB: not implemented"; return nil }
 
-func (h tlsHandshakeRecordHeader) PayloadLen() uint16 {
-	return binary.BigEndian.Uint16(h[3:5])
-}
+func (h tlsHandshakeRecordHeader) PayloadLen() uint16 { _ = "STUB: not implemented"; return 0 }
 
 func (h tlsHandshakeRecordHeader) SetPayloadLen(len uint16) error {
-	if len == 0 || len > maxRecordPayloadLen {
-		return errors.New("record length out of range")
-	}
-	binary.BigEndian.PutUint16(h[3:5], len)
+	_ = "STUB: not implemented"
 	return nil
 }

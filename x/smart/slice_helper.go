@@ -14,10 +14,4 @@
 
 package smart
 
-func moveToFront[S ~[]E, E any](s S, idx int) {
-	if idx > 0 && idx < len(s) {
-		entry := s[idx]
-		copy(s[1:], s[:idx])
-		s[0] = entry
-	}
-}
+func moveToFront[S ~[]E, E any](s S, idx int) { _ = "STUB: not implemented"; return }

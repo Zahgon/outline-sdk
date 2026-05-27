@@ -26,10 +26,10 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/lmittmann/tint"
 	"golang.getoutline.org/sdk/transport"
 	"golang.getoutline.org/sdk/x/configurl"
 	"golang.getoutline.org/sdk/x/websocket"
-	"github.com/lmittmann/tint"
 	"golang.org/x/term"
 )
 
@@ -39,10 +39,7 @@ type natConn struct {
 }
 
 // Consider ReadFrom/WriteTo
-func (c *natConn) Write(b []byte) (int, error) {
-	c.Conn.SetDeadline(time.Now().Add(c.mappingTimeout))
-	return c.Conn.Write(b)
-}
+func (c *natConn) Write(b []byte) (int, error) { _ = "STUB: not implemented"; return 0, nil }
 
 func main() {
 	var logLevel slog.LevelVar

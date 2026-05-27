@@ -16,12 +16,7 @@ package soax
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
-	"net/url"
-	"strings"
 )
 
 const (
@@ -49,63 +44,15 @@ type Client struct {
 	BaseURL string
 }
 
-func (c *Client) httpClient() *http.Client {
-	if c.HTTPClient == nil {
-		return http.DefaultClient
-	}
-	return c.HTTPClient
-}
+func (c *Client) httpClient() *http.Client { _ = "STUB: not implemented"; return nil }
 
 func (c *Client) newRequest(ctx context.Context, apiPath string, queryParams map[string]string) (*http.Request, error) {
-	var baseURL *url.URL
-	var err error
-	if c.BaseURL != "" {
-		baseURL, err = url.Parse(c.BaseURL)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse BaseURL: %w", err)
-		}
-	} else {
-		baseURL = &url.URL{
-			Scheme: "https",
-			Host:   apiHost,
-		}
-	}
-	pathURL := &url.URL{Path: apiPath}
-	apiURL := baseURL.ResolveReference(pathURL)
-
-	q := apiURL.Query()
-	q.Set("api_key", c.APIKey)
-	q.Set("package_key", c.PackageKey)
-	for k, v := range queryParams {
-		if v != "" {
-			q.Set(k, v)
-		}
-	}
-	apiURL.RawQuery = q.Encode()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL.String(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	return req, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 func (c *Client) doAndDecode(req *http.Request, result any) error {
-	resp, err := c.httpClient().Do(req)
-	if err != nil {
-		return fmt.Errorf("request failed: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("request failed with status %v: %v", resp.Status, string(body))
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
-	}
-	if err := json.Unmarshal(body, result); err != nil {
-		return fmt.Errorf("failed to decode response: %w", err)
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
@@ -114,75 +61,30 @@ func (c *Client) doAndDecode(req *http.Request, result any) error {
 // The official documentation refers to residential ISPs as "WiFi ISPs".
 // API reference: https://helpcenter.soax.com/en/articles/6228391-getting-a-list-of-wifi-isps
 func (c *Client) GetResidentialISPs(ctx context.Context, countryCode, regionID, cityID string) ([]string, error) {
-	req, err := c.newRequest(ctx, "/api/get-country-isp", map[string]string{
-		"country_iso": strings.ToLower(countryCode),
-		"region":      regionID,
-		"city":        cityID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	var isps []string
-	if err := c.doAndDecode(req, &isps); err != nil {
-		return nil, err
-	}
-	return isps, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // GetMobileISPs returns the available mobile carriers for the given location.
 // Requires a Mobile package; returns an error with a Residential package.
 // API reference: https://helpcenter.soax.com/en/articles/6228381-getting-a-list-of-mobile-carriers
 func (c *Client) GetMobileISPs(ctx context.Context, countryCode, regionID, cityID string) ([]string, error) {
-	req, err := c.newRequest(ctx, "/api/get-country-operators", map[string]string{
-		"country_iso": strings.ToLower(countryCode),
-		"region":      regionID,
-		"city":        cityID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	var isps []string
-	if err := c.doAndDecode(req, &isps); err != nil {
-		return nil, err
-	}
-	return isps, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // GetRegions returns the available regions for the given country and ISP.
 // connType must match the package type: [ConnTypeResidential] for Residential packages, [ConnTypeMobile] for Mobile packages.
 // API reference: https://helpcenter.soax.com/en/articles/6227864-getting-a-list-of-regions
 func (c *Client) GetRegions(ctx context.Context, connType ConnType, countryCode, isp string) ([]string, error) {
-	req, err := c.newRequest(ctx, "/api/get-country-regions", map[string]string{
-		"country_iso": strings.ToLower(countryCode),
-		"conn_type":   string(connType),
-		"provider":    isp,
-	})
-	if err != nil {
-		return nil, err
-	}
-	var regions []string
-	if err := c.doAndDecode(req, &regions); err != nil {
-		return nil, err
-	}
-	return regions, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // GetCities returns the available cities for the given country, ISP, and region.
 // connType must match the package type: [ConnTypeResidential] for Residential packages, [ConnTypeMobile] for Mobile packages.
 // API reference: https://helpcenter.soax.com/en/articles/6228092-getting-a-list-of-cities
 func (c *Client) GetCities(ctx context.Context, connType ConnType, countryCode, isp, regionID string) ([]string, error) {
-	req, err := c.newRequest(ctx, "/api/get-country-cities", map[string]string{
-		"country_iso": strings.ToLower(countryCode),
-		"conn_type":   string(connType),
-		"provider":    isp,
-		"region":      regionID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	var cities []string
-	if err := c.doAndDecode(req, &cities); err != nil {
-		return nil, err
-	}
-	return cities, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }

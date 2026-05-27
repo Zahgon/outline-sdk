@@ -36,29 +36,20 @@ var debugLog log.Logger = *log.New(io.Discard, "", 0)
 
 type stringArrayFlagValue []string
 
-func (v *stringArrayFlagValue) String() string {
-	return fmt.Sprint(*v)
-}
+func (v *stringArrayFlagValue) String() string { _ = "STUB: not implemented"; return "" }
 
-func (v *stringArrayFlagValue) Set(value string) error {
-	*v = append(*v, value)
-	return nil
-}
+func (v *stringArrayFlagValue) Set(value string) error { _ = "STUB: not implemented"; return nil }
 
 func supportsHappyEyeballs(dialer transport.StreamDialer) bool {
+	_ = "STUB: not implemented"
 	// Some proxy protocols, most notably Shadowsocks, can't communicate connection success.
 	// Our shadowsocks.StreamDialer will return a connection successfully as long as it can
 	// connect to the proxy server, regardless of whether it can connect to the target.
 	// This breaks HappyEyeballs.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-	conn, err := dialer.DialStream(ctx, "invalid:0")
-	cancel()
-	if conn != nil {
-		conn.Close()
-	}
-	// If the dialer returns success on an invalid address, it doesn't support Happy Eyeballs.
-	return err != nil
+	return false
 }
+
+// If the dialer returns success on an invalid address, it doesn't support Happy Eyeballs.
 
 func main() {
 	verboseFlag := flag.Bool("v", false, "Enable debug output")

@@ -18,8 +18,6 @@ package psiphon
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"golang.getoutline.org/sdk/transport"
 	"golang.getoutline.org/sdk/x/mobileproxy"
@@ -33,30 +31,14 @@ import (
 // If the config does not contains these fields
 // output the whole config as a string
 func getPsiphonConfigSignature(yamlNode smart.YAMLNode) string {
-	switch yamlMap := yamlNode.(type) {
-	case map[string]any:
-		propagationChannelId, ok1 := yamlMap["PropagationChannelId"].(string)
-		sponsorId, ok2 := yamlMap["SponsorId"].(string)
-
-		if ok1 && ok2 {
-			return fmt.Sprintf("{PropagationChannelId: %v, SponsorId: %v, [...]}", propagationChannelId, sponsorId)
-		}
-	}
-	jsonBytes, err := json.Marshal(yamlNode)
-	if err != nil {
-		return fmt.Sprintf("invalid config: %v", err)
-	}
-	return string(jsonBytes)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ParseConfig creates the Psiphon StreamDialer from a config.
 func ParseConfig(ctx context.Context, yamlNode smart.YAMLNode) (transport.StreamDialer, string, error) {
-	dialer, err := parsePsiphon(ctx, yamlNode)
-	if err != nil {
-		return nil, "", err
-	}
-	configSignature := getPsiphonConfigSignature(yamlNode)
-	return dialer, configSignature, err
+	_ = "STUB: not implemented"
+	return *new(transport.StreamDialer), "", nil
 }
 
 // RegisterFallbackParser registers the Psiphon config parser as a fallback parser for the given name (usually "psiphon").
@@ -66,5 +48,6 @@ func ParseConfig(ctx context.Context, yamlNode smart.YAMLNode) (transport.Stream
 // * opts - the SmartDialerOptions to register the parser with
 // * name - the name under which to register the fallback parser
 func RegisterFallbackParser(opts *mobileproxy.SmartDialerOptions, name string) {
-	opts.RegisterFallbackParser(name, ParseConfig)
+	_ = "STUB: not implemented"
+	return
 }

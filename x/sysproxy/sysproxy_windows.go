@@ -17,12 +17,7 @@
 package sysproxy
 
 import (
-	"fmt"
-	"net"
-	"strings"
-
 	"golang.org/x/sys/windows"
-	"golang.org/x/sys/windows/registry"
 )
 
 type proxySettings struct {
@@ -47,147 +42,51 @@ const (
 	INTERNET_OPTION_REFRESH          = 37
 )
 
-func SetWebProxy(host string, port string) error {
-
-	settings := &proxySettings{
-		proxyServer:   net.JoinHostPort(host, port),
-		proxyOverride: "*.local;<local>",
-	}
-
-	return setProxySettings(settings)
-}
+func SetWebProxy(host string, port string) error { _ = "STUB: not implemented"; return nil }
 
 func DisableWebProxy() error {
+	_ = "STUB: not implemented"
 	// disable proxy settings
-	return disableProxy()
+	return nil
 }
 
 // SetProxy does nothing on windows platforms.
-func SetSOCKSProxy(host string, port string) error {
-	endpoint := fmt.Sprintf("socks=%s", net.JoinHostPort(host, port))
-	settings := &proxySettings{
-		proxyServer:   endpoint,
-		proxyOverride: "*.local;<local>",
-	}
-
-	return setProxySettings(settings)
-}
+func SetSOCKSProxy(host string, port string) error { _ = "STUB: not implemented"; return nil }
 
 // SetProxy does nothing on windows platforms.
-func DisableSOCKSProxy() error {
-	return disableProxy()
-}
+func DisableSOCKSProxy() error { _ = "STUB: not implemented"; return nil }
 
-func setProxySettings(settings *proxySettings) error {
-	key, err := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Internet Settings`, registry.SET_VALUE)
-	if err != nil {
-		return err
-	}
-	defer key.Close()
+func setProxySettings(settings *proxySettings) error { _ = "STUB: not implemented"; return nil }
 
-	if err = key.SetStringValue("ProxyServer", settings.proxyServer); err != nil {
-		return err
-	}
-	if err = key.SetStringValue("ProxyOverride", settings.proxyOverride); err != nil {
-		return err
-	}
-	// Finally, enable the proxy
-	if err = key.SetDWordValue("ProxyEnable", uint32(1)); err != nil {
-		return err
-	}
+// Finally, enable the proxy
 
-	// Refresh the settings
-	return notifyWinInetProxySettingsChanged()
-}
+// Refresh the settings
 
-func disableProxy() error {
-	key, err := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Internet Settings`, registry.SET_VALUE)
-	if err != nil {
-		return err
-	}
-	defer key.Close()
+func disableProxy() error { _ = "STUB: not implemented"; return nil }
 
-	// Set ProxyEnable to 0
-	err = key.SetDWordValue("ProxyEnable", 0)
-	if err != nil {
-		return err
-	}
+// Set ProxyEnable to 0
 
-	// Refresh the settings
-	return notifyWinInetProxySettingsChanged()
-}
+// Refresh the settings
 
 // https://learn.microsoft.com/en-us/windows/win32/api/wininet/nf-wininet-internetsetoptionw
 // internetSetOption sets an Internet option.
 func internetSetOption(hInternet uintptr, dwOption int, lpBuffer uintptr, dwBufferLength uint32) error {
-	ret, _, lastErr := procInternetSetOption.Call(
-		hInternet,
-		uintptr(dwOption),
-		lpBuffer,
-		uintptr(dwBufferLength),
-	)
-	if ret == 0 {
-		return lastErr
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
-func notifyWinInetProxySettingsChanged() error {
-	if err := internetSetOption(0, INTERNET_OPTION_SETTINGS_CHANGED, 0, 0); err != nil {
-		return fmt.Errorf("failed to notify the system that the registry settings have been changed: %w", err)
-	}
+func notifyWinInetProxySettingsChanged() error { _ = "STUB: not implemented"; return nil }
 
-	if err := internetSetOption(0, INTERNET_OPTION_REFRESH, 0, 0); err != nil {
-		return fmt.Errorf("failed to refresh the proxy data from the registry: %w", err)
-	}
-
-	return nil
-}
 func getWebProxy() (host string, port string, enabled bool, err error) {
-	key, err := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Internet Settings`, registry.QUERY_VALUE)
-	if err != nil {
-		return "", "", false, err
-	}
-	defer key.Close()
-
-	address, _, err := key.GetStringValue("ProxyServer")
-	if err != nil {
-		return "", "", false, err
-	}
-
-	// Read back the value of ProxyEnable
-	proxyEnable, _, err := key.GetIntegerValue("ProxyEnable")
-	if err != nil {
-		return "", "", false, err
-	}
-
-	host, port, err = net.SplitHostPort(address)
-	if err != nil {
-		return "", "", false, err
-	}
-
-	return host, port, proxyEnable == 1, nil
+	_ = "STUB: not implemented"
+	return "", "", false, nil
 }
+
+// Read back the value of ProxyEnable
 
 func getSOCKSProxy() (host string, port string, enabled bool, err error) {
-	key, err := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Internet Settings`, registry.QUERY_VALUE)
-	if err != nil {
-		return "", "", false, err
-	}
-	defer key.Close()
-
-	address, _, err := key.GetStringValue("ProxyServer")
-	h := strings.TrimPrefix(address, "socks=")
-
-	host, port, err = net.SplitHostPort(h)
-	if err != nil {
-		return "", "", false, err
-	}
-	// Read back the value of ProxyEnable
-	proxyEnable, _, err := key.GetIntegerValue("ProxyEnable")
-	if err != nil {
-		return "", "", false, err
-	}
-
-	return host, port, proxyEnable == 1, nil
+	_ = "STUB: not implemented"
+	return "", "", false, nil
 }
+
+// Read back the value of ProxyEnable

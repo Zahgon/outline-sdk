@@ -22,7 +22,6 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -35,42 +34,17 @@ type customTheme struct {
 const ColorNameOnPrimary = "OnPrimary"
 
 func (t *customTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
-	switch name {
-	case theme.ColorNameHeaderBackground:
-		return t.Color(theme.ColorNamePrimary, variant)
-	case theme.ColorNamePrimary:
-		if variant == theme.VariantLight {
-			// Dark teal.
-			return color.RGBA{R: 0x00, G: 0x67, B: 0x7F, A: 255}
-		} else {
-			// Sky blue.
-			return color.RGBA{R: 0x7C, G: 0xD2, B: 0xF0, A: 255}
-		}
-	case ColorNameOnPrimary:
-		if variant == theme.VariantLight {
-			return color.White
-		} else {
-			// Deep dark teal.
-			return color.RGBA{R: 0x00, G: 0x35, B: 0x43, A: 255}
-		}
-	default:
-		return t.Theme.Color(name, variant)
-	}
+	_ = "STUB: not implemented"
+	return *new(color.Color)
 }
 
-func makeAppHeader(title string) *fyne.Container {
-	titleLabel := &widget.RichText{Scroll: container.ScrollNone, Segments: []widget.RichTextSegment{
-		&widget.TextSegment{Text: title, Style: widget.RichTextStyle{
-			Alignment: fyne.TextAlignCenter,
-			ColorName: ColorNameOnPrimary,
-			SizeName:  theme.SizeNameHeadingText,
-			TextStyle: fyne.TextStyle{Bold: true},
-		}},
-	}}
-	settings := fyne.CurrentApp().Settings()
-	bgColor := settings.Theme().Color(theme.ColorNameHeaderBackground, settings.ThemeVariant())
-	return container.NewStack(canvas.NewRectangle(bgColor), titleLabel)
-}
+// Dark teal.
+
+// Sky blue.
+
+// Deep dark teal.
+
+func makeAppHeader(title string) *fyne.Container { _ = "STUB: not implemented"; return nil }
 
 func main() {
 	fyneApp := app.New()

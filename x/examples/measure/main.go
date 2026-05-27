@@ -17,23 +17,19 @@ package main
 import (
 	"context"
 	"encoding/csv"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log/slog"
 	"net"
-	"net/http"
 	"os"
 	"path"
-	"strings"
 	"sync/atomic"
 	"time"
 
-	"golang.getoutline.org/sdk/transport/tls"
-	"golang.getoutline.org/sdk/x/configurl"
 	"github.com/goccy/go-yaml"
 	"github.com/lmittmann/tint"
+	"golang.getoutline.org/sdk/transport/tls"
+	"golang.getoutline.org/sdk/x/configurl"
 	"golang.org/x/term"
 )
 
@@ -84,54 +80,9 @@ type ISPInfo struct {
 
 var transportToDialer = configurl.NewDefaultProviders()
 
-func makeErrorMsg(err error, domain string) string {
-	return strings.ReplaceAll(err.Error(), domain, "${DOMAIN}")
-}
+func makeErrorMsg(err error, domain string) string { _ = "STUB: not implemented"; return "" }
 
-func newISP(ispProxy string) ISP {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	dialer, err := transportToDialer.NewStreamDialer(ctx, ispProxy)
-	if err != nil {
-		slog.Error("Could not create ISP dialer", "error", err)
-		os.Exit(1)
-	}
-	dialContext := func(ctx context.Context, network, addr string) (net.Conn, error) {
-		if !strings.HasPrefix(network, "tcp") {
-			return nil, fmt.Errorf("protocol not supported: %v", network)
-		}
-		return dialer.DialStream(ctx, addr)
-	}
-	httpClient := &http.Client{
-		Transport: &http.Transport{DialContext: dialContext},
-		Timeout:   time.Duration(10) * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-	req, err := http.NewRequest("GET", "https://checker.soax.com/api/ipinfo", nil)
-	if err != nil {
-		slog.Error("Failed to create request", "error", err)
-		os.Exit(1)
-	}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		slog.Error("HTTP request failed", "error", err)
-		os.Exit(1)
-	}
-	var ispInfo ISPInfo
-	func() {
-		defer resp.Body.Close()
-		jsonBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			slog.Error("failed to get isp info", "error", err)
-			os.Exit(1)
-		}
-		json.Unmarshal(jsonBytes, &ispInfo)
-	}()
-	return ISP{Transport: ispProxy, Name: ispInfo.Data.ISP, CountryCode: ispInfo.Data.CountryCode}
-}
+func newISP(ispProxy string) ISP { _ = "STUB: not implemented"; return *new(ISP) }
 
 func main() {
 	verboseFlag := flag.Bool("v", false, "Enable debug output")

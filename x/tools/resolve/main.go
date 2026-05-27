@@ -40,10 +40,7 @@ func init() {
 	}
 }
 
-func rcodeToString(rcode dnsmessage.RCode) string {
-	rcodeStr, _ := strings.CutPrefix(strings.ToUpper(rcode.String()), "RCODE")
-	return rcodeStr
-}
+func rcodeToString(rcode dnsmessage.RCode) string { _ = "STUB: not implemented"; return "" }
 
 func main() {
 	verboseFlag := flag.Bool("v", false, "Enable debug output")

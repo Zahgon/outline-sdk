@@ -17,7 +17,6 @@ package shadowsocks
 import (
 	"bytes"
 	"crypto/cipher"
-	"encoding/binary"
 	"fmt"
 	"io"
 	"sync"
@@ -65,14 +64,10 @@ var (
 
 // NewWriter creates a [Writer] that encrypts the given [io.Writer] using
 // the shadowsocks protocol with the given encryption key.
-func NewWriter(writer io.Writer, key *EncryptionKey) *Writer {
-	return &Writer{writer: writer, key: key, saltGenerator: RandomSaltGenerator}
-}
+func NewWriter(writer io.Writer, key *EncryptionKey) *Writer { _ = "STUB: not implemented"; return nil }
 
 // SetSaltGenerator sets the salt generator to be used. Must be called before the first write.
-func (sw *Writer) SetSaltGenerator(saltGenerator SaltGenerator) {
-	sw.saltGenerator = saltGenerator
-}
+func (sw *Writer) SetSaltGenerator(saltGenerator SaltGenerator) { _ = "STUB: not implemented"; return }
 
 // init generates a random salt, sets up the AEAD object and writes
 // the salt to the inner Writer.
@@ -101,161 +96,62 @@ func (sw *Writer) init() (err error) {
 
 // encryptBlock encrypts `plaintext` in-place.  The slice must have enough capacity
 // for the tag. Returns the total ciphertext length.
-func (sw *Writer) encryptBlock(plaintext []byte) int {
-	out := sw.aead.Seal(plaintext[:0], sw.counter, plaintext, nil)
-	increment(sw.counter)
-	return len(out)
-}
+func (sw *Writer) encryptBlock(plaintext []byte) int { _ = "STUB: not implemented"; return 0 }
 
-func (sw *Writer) Write(p []byte) (int, error) {
-	sw.byteWrapper.Reset(p)
-	n, err := sw.ReadFrom(&sw.byteWrapper)
-	return int(n), err
-}
+func (sw *Writer) Write(p []byte) (int, error) { _ = "STUB: not implemented"; return 0, nil }
 
 // LazyWrite queues p to be written, but doesn't send it until Flush() is
 // called, a non-lazy write is made, or the buffer is filled.
-func (sw *Writer) LazyWrite(p []byte) (int, error) {
-	if err := sw.init(); err != nil {
-		return 0, err
-	}
+func (sw *Writer) LazyWrite(p []byte) (int, error) { _ = "STUB: not implemented"; return 0, nil }
 
-	// Locking is needed due to potential concurrency with the Flush()
-	// for a previous call to LazyWrite().
-	sw.mu.Lock()
-	defer sw.mu.Unlock()
+// Locking is needed due to potential concurrency with the Flush()
+// for a previous call to LazyWrite().
 
-	queued := 0
-	for {
-		n := sw.enqueue(p)
-		queued += n
-		p = p[n:]
-		if len(p) == 0 {
-			sw.needFlush = true
-			return queued, nil
-		}
-		// p didn't fit in the buffer.  Flush the buffer and try
-		// again.
-		if err := sw.flush(); err != nil {
-			return queued, err
-		}
-	}
-}
+// p didn't fit in the buffer.  Flush the buffer and try
+// again.
 
 // Flush sends the pending data, if any.  This method is thread-safe.
-func (sw *Writer) Flush() error {
-	sw.mu.Lock()
-	defer sw.mu.Unlock()
-	if !sw.needFlush {
-		return nil
-	}
-	return sw.flush()
-}
+func (sw *Writer) Flush() error { _ = "STUB: not implemented"; return nil }
 
-func isZero(b []byte) bool {
-	for _, v := range b {
-		if v != 0 {
-			return false
-		}
-	}
-	return true
-}
+func isZero(b []byte) bool { _ = "STUB: not implemented"; return false }
 
 // Returns the slices of sw.buf in which to place plaintext for encryption.
 func (sw *Writer) buffers() (sizeBuf, payloadBuf []byte) {
+	_ = "STUB: not implemented"
 	// sw.buf starts with the salt.
-	saltSize := sw.key.SaltSize()
-
-	// Each Shadowsocks-TCP message consists of a fixed-length size block,
-	// followed by a variable-length payload block.
-	sizeBuf = sw.buf[saltSize : saltSize+2]
-	payloadStart := saltSize + 2 + sw.aead.Overhead()
-	payloadBuf = sw.buf[payloadStart : payloadStart+payloadSizeMask]
-	return
+	return nil, nil
 }
+
+// Each Shadowsocks-TCP message consists of a fixed-length size block,
+// followed by a variable-length payload block.
 
 // ReadFrom implements the [io.ReaderFrom] interface.
-func (sw *Writer) ReadFrom(r io.Reader) (int64, error) {
-	if err := sw.init(); err != nil {
-		return 0, err
-	}
-	var written int64
-	var err error
-	_, payloadBuf := sw.buffers()
+func (sw *Writer) ReadFrom(r io.Reader) (int64, error) { _ = "STUB: not implemented"; return 0, nil }
 
-	// Special case: one thread-safe read, if necessary
-	sw.mu.Lock()
-	if sw.needFlush {
-		pending := sw.pending
+// Special case: one thread-safe read, if necessary
 
-		sw.mu.Unlock()
-		saltsize := sw.key.SaltSize()
-		overhead := sw.aead.Overhead()
-		// The first pending+overhead bytes of payloadBuf are potentially
-		// in use, and may be modified on the flush thread.  Data after
-		// that is safe to use on this thread.
-		readBuf := sw.buf[saltsize+2+overhead+pending+overhead:]
-		var plaintextSize int
-		plaintextSize, err = r.Read(readBuf)
-		written = int64(plaintextSize)
-		sw.mu.Lock()
+// The first pending+overhead bytes of payloadBuf are potentially
+// in use, and may be modified on the flush thread.  Data after
+// that is safe to use on this thread.
 
-		sw.enqueue(readBuf[:plaintextSize])
-		if flushErr := sw.flush(); flushErr != nil {
-			err = flushErr
-		}
-		sw.needFlush = false
-	}
-	sw.mu.Unlock()
+// Main transfer loop
 
-	// Main transfer loop
-	for err == nil {
-		sw.pending, err = r.Read(payloadBuf)
-		written += int64(sw.pending)
-		if flushErr := sw.flush(); flushErr != nil {
-			err = flushErr
-		}
-	}
-
-	if err == io.EOF { // ignore EOF as per io.ReaderFrom contract
-		return written, nil
-	}
-	return written, fmt.Errorf("failed to read payload: %w", err)
-}
+// ignore EOF as per io.ReaderFrom contract
 
 // Adds as much of `plaintext` into the buffer as will fit, and increases
 // sw.pending accordingly.  Returns the number of bytes consumed.
-func (sw *Writer) enqueue(plaintext []byte) int {
-	_, payloadBuf := sw.buffers()
-	n := copy(payloadBuf[sw.pending:], plaintext)
-	sw.pending += n
-	return n
-}
+func (sw *Writer) enqueue(plaintext []byte) int { _ = "STUB: not implemented"; return 0 }
 
 // Encrypts all pending data and writes it to the output.
-func (sw *Writer) flush() error {
-	if sw.pending == 0 {
-		return nil
-	}
-	// sw.buf starts with the salt.
-	saltSize := sw.key.SaltSize()
-	// Normally we ignore the salt at the beginning of sw.buf.
-	start := saltSize
-	if isZero(sw.counter) {
-		// For the first message, include the salt.  Compared to writing the salt
-		// separately, this saves one packet during TCP slow-start and potentially
-		// avoids having a distinctive size for the first packet.
-		start = 0
-	}
+func (sw *Writer) flush() error { _ = "STUB: not implemented"; return nil }
 
-	sizeBuf, payloadBuf := sw.buffers()
-	binary.BigEndian.PutUint16(sizeBuf, uint16(sw.pending))
-	sizeBlockSize := sw.encryptBlock(sizeBuf)
-	payloadSize := sw.encryptBlock(payloadBuf[:sw.pending])
-	_, err := sw.writer.Write(sw.buf[start : saltSize+sizeBlockSize+payloadSize])
-	sw.pending = 0
-	return err
-}
+// sw.buf starts with the salt.
+
+// Normally we ignore the salt at the beginning of sw.buf.
+
+// For the first message, include the salt.  Compared to writing the salt
+// separately, this saves one packet during TCP slow-start and potentially
+// avoids having a distinctive size for the first packet.
 
 // genericChunkReader is similar to io.Reader, except that it controls its own
 // buffer granularity.
@@ -289,13 +185,8 @@ type Reader interface {
 // NewReader creates a [Reader] that decrypts the given [io.Reader] using
 // the shadowsocks protocol with the given encryption key.
 func NewReader(reader io.Reader, key *EncryptionKey) Reader {
-	return &readConverter{
-		cr: &chunkReader{
-			reader:  reader,
-			key:     key,
-			payload: readBufPool.LazySlice(),
-		},
-	}
+	_ = "STUB: not implemented"
+	return *new(Reader)
 }
 
 // init reads the salt from the inner Reader and sets up the AEAD object
@@ -323,55 +214,22 @@ func (cr *chunkReader) init() (err error) {
 // The ciphertext and tag (i.e. "overhead") must exactly fill `buf`,
 // and the decrypted message will be placed in buf[:len(buf)-overhead].
 // Returns an error only if the block could not be read.
-func (cr *chunkReader) readMessage(buf []byte) error {
-	_, err := io.ReadFull(cr.reader, buf)
-	if err != nil {
-		return err
-	}
-	_, err = cr.aead.Open(buf[:0], cr.counter, buf, nil)
-	increment(cr.counter)
-	if err != nil {
-		return fmt.Errorf("failed to decrypt: %w", err)
-	}
-	return nil
-}
+func (cr *chunkReader) readMessage(buf []byte) error { _ = "STUB: not implemented"; return nil }
 
 // ReadChunk returns the next chunk from the stream.  Callers must fully
 // consume and discard the previous chunk before calling ReadChunk again.
-func (cr *chunkReader) ReadChunk() ([]byte, error) {
-	if err := cr.init(); err != nil {
-		return nil, err
-	}
+func (cr *chunkReader) ReadChunk() ([]byte, error) { _ = "STUB: not implemented"; return nil, nil }
 
-	// Release the previous payload buffer.
-	cr.payload.Release()
+// Release the previous payload buffer.
 
-	// In Shadowsocks-AEAD, each chunk consists of two
-	// encrypted messages.  The first message contains the payload length,
-	// and the second message is the payload.  Idle read threads will
-	// block here until the next chunk.
-	if err := cr.readMessage(cr.payloadSizeBuf); err != nil {
-		if err != io.EOF && err != io.ErrUnexpectedEOF {
-			err = fmt.Errorf("failed to read payload size: %w", err)
-		}
-		return nil, err
-	}
-	size := int(binary.BigEndian.Uint16(cr.payloadSizeBuf) & payloadSizeMask)
-	sizeWithTag := size + cr.aead.Overhead()
-	payloadBuf := cr.payload.Acquire()
-	if cap(payloadBuf) < sizeWithTag {
-		// This code is unreachable if the constants are set correctly.
-		return nil, io.ErrShortBuffer
-	}
-	if err := cr.readMessage(payloadBuf[:sizeWithTag]); err != nil {
-		if err == io.EOF { // EOF is not expected mid-chunk.
-			err = io.ErrUnexpectedEOF
-		}
-		cr.payload.Release()
-		return nil, err
-	}
-	return payloadBuf[:size], nil
-}
+// In Shadowsocks-AEAD, each chunk consists of two
+// encrypted messages.  The first message contains the payload length,
+// and the second message is the payload.  Idle read threads will
+// block here until the next chunk.
+
+// This code is unreachable if the constants are set correctly.
+
+// EOF is not expected mid-chunk.
 
 // readConverter adapts from ChunkReader, with source-controlled
 // chunk sizes, to Go-style IO.
@@ -380,54 +238,17 @@ type readConverter struct {
 	leftover []byte
 }
 
-func (c *readConverter) Read(b []byte) (int, error) {
-	if err := c.ensureLeftover(); err != nil {
-		return 0, err
-	}
-	n := copy(b, c.leftover)
-	c.leftover = c.leftover[n:]
-	return n, nil
-}
+func (c *readConverter) Read(b []byte) (int, error) { _ = "STUB: not implemented"; return 0, nil }
 
 func (c *readConverter) WriteTo(w io.Writer) (written int64, err error) {
-	for {
-		if err = c.ensureLeftover(); err != nil {
-			if err == io.EOF {
-				err = nil
-			}
-			return written, err
-		}
-		n, err := w.Write(c.leftover)
-		written += int64(n)
-		c.leftover = c.leftover[n:]
-		if err != nil {
-			return written, err
-		}
-	}
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // Ensures that c.leftover is nonempty.  If leftover is empty, this method
 // waits for incoming data and decrypts it.
 // Returns an error only if c.leftover could not be populated.
-func (c *readConverter) ensureLeftover() error {
-	if len(c.leftover) > 0 {
-		return nil
-	}
-	c.leftover = nil
-	payload, err := c.cr.ReadChunk()
-	if err != nil {
-		return err
-	}
-	c.leftover = payload
-	return nil
-}
+func (c *readConverter) ensureLeftover() error { _ = "STUB: not implemented"; return nil }
 
 // increment little-endian encoded unsigned integer b. Wrap around on overflow.
-func increment(b []byte) {
-	for i := range b {
-		b[i]++
-		if b[i] != 0 {
-			return
-		}
-	}
-}
+func increment(b []byte) { _ = "STUB: not implemented"; return }

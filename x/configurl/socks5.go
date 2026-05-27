@@ -22,59 +22,21 @@ import (
 )
 
 func registerSOCKS5StreamDialer(r TypeRegistry[transport.StreamDialer], typeID string, newSD BuildFunc[transport.StreamDialer]) {
-	r.RegisterType(typeID, func(ctx context.Context, config *Config) (transport.StreamDialer, error) {
-		return newSOCKS5Client(ctx, *config, newSD)
-	})
+	_ = "STUB: not implemented"
+	return
 }
 
 func registerSOCKS5PacketDialer(r TypeRegistry[transport.PacketDialer], typeID string, newSD BuildFunc[transport.StreamDialer], newPD BuildFunc[transport.PacketDialer]) {
-	r.RegisterType(typeID, func(ctx context.Context, config *Config) (transport.PacketDialer, error) {
-		client, err := newSOCKS5Client(ctx, *config, newSD)
-		if err != nil {
-			return nil, err
-		}
-		pd, err := newPD(ctx, config.BaseConfig)
-		if err != nil {
-			return nil, err
-		}
-		client.EnablePacket(pd)
-		return transport.PacketListenerDialer{Listener: client}, nil
-	})
+	_ = "STUB: not implemented"
+	return
 }
 
 func registerSOCKS5PacketListener(r TypeRegistry[transport.PacketListener], typeID string, newSD BuildFunc[transport.StreamDialer], newPD BuildFunc[transport.PacketDialer]) {
-	r.RegisterType(typeID, func(ctx context.Context, config *Config) (transport.PacketListener, error) {
-		client, err := newSOCKS5Client(ctx, *config, newSD)
-		if err != nil {
-			return nil, err
-		}
-		pd, err := newPD(ctx, config.BaseConfig)
-		if err != nil {
-			return nil, err
-		}
-		client.EnablePacket(pd)
-		return client, nil
-	})
+	_ = "STUB: not implemented"
+	return
 }
 
 func newSOCKS5Client(ctx context.Context, config Config, newSD BuildFunc[transport.StreamDialer]) (*socks5.Client, error) {
-	sd, err := newSD(ctx, config.BaseConfig)
-	if err != nil {
-		return nil, err
-	}
-	endpoint := transport.StreamDialerEndpoint{Dialer: sd, Address: config.URL.Host}
-	client, err := socks5.NewClient(&endpoint)
-	if err != nil {
-		return nil, err
-	}
-	userInfo := config.URL.User
-	if userInfo != nil {
-		username := userInfo.Username()
-		password, _ := userInfo.Password()
-		err := client.SetCredentials([]byte(username), []byte(password))
-		if err != nil {
-			return nil, err
-		}
-	}
-	return client, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }

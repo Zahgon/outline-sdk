@@ -18,10 +18,6 @@ package connectivity
 
 import (
 	"syscall"
-
-	"golang.org/x/sys/unix"
 )
 
-func systemErrnoName(errno syscall.Errno) string {
-	return unix.ErrnoName(errno)
-}
+func systemErrnoName(errno syscall.Errno) string { _ = "STUB: not implemented"; return "" }

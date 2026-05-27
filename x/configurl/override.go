@@ -15,93 +15,24 @@
 package configurl
 
 import (
-	"context"
-	"fmt"
-	"net"
 	"net/url"
-	"strings"
 
 	"golang.getoutline.org/sdk/transport"
 )
 
 func registerOverrideStreamDialer(r TypeRegistry[transport.StreamDialer], typeID string, newSD BuildFunc[transport.StreamDialer]) {
-	r.RegisterType(typeID, func(ctx context.Context, config *Config) (transport.StreamDialer, error) {
-		sd, err := newSD(ctx, config.BaseConfig)
-		if err != nil {
-			return nil, err
-		}
-		override, err := newOverrideFromURL(config.URL)
-		if err != nil {
-			return nil, err
-		}
-		return transport.FuncStreamDialer(func(ctx context.Context, addr string) (transport.StreamConn, error) {
-			addr, err := override(addr)
-			if err != nil {
-				return nil, err
-			}
-			return sd.DialStream(ctx, addr)
-		}), nil
-	})
+	_ = "STUB: not implemented"
+	return
 }
 
 func registerOverridePacketDialer(r TypeRegistry[transport.PacketDialer], typeID string, newPD BuildFunc[transport.PacketDialer]) {
-	r.RegisterType(typeID, func(ctx context.Context, config *Config) (transport.PacketDialer, error) {
-		pd, err := newPD(ctx, config.BaseConfig)
-		if err != nil {
-			return nil, err
-		}
-		override, err := newOverrideFromURL(config.URL)
-		if err != nil {
-			return nil, err
-		}
-		return transport.FuncPacketDialer(func(ctx context.Context, addr string) (net.Conn, error) {
-			addr, err := override(addr)
-			if err != nil {
-				return nil, err
-			}
-			return pd.DialPacket(ctx, addr)
-		}), nil
-	})
+	_ = "STUB: not implemented"
+	return
 }
 
 func newOverrideFromURL(configURL url.URL) (func(string) (string, error), error) {
-	query := configURL.Opaque
-	values, err := url.ParseQuery(query)
-	if err != nil {
-		return nil, err
-	}
-	hostOverride, portOverride := "", ""
-	for key, values := range values {
-		switch strings.ToLower(key) {
-		case "host":
-			if len(values) != 1 {
-				return nil, fmt.Errorf("host option must has one value, found %v", len(values))
-			}
-			hostOverride = values[0]
-		case "port":
-			if len(values) != 1 {
-				return nil, fmt.Errorf("port option must has one value, found %v", len(values))
-			}
-			portOverride = values[0]
-		default:
-			return nil, fmt.Errorf("unsupported option %v", key)
-		}
-	}
-	return func(address string) (string, error) {
-		// Optimization when we fully override the address.
-		if hostOverride != "" && portOverride != "" {
-			return net.JoinHostPort(hostOverride, portOverride), nil
-		}
-		host, port, err := net.SplitHostPort(address)
-		if err != nil {
-			return "", fmt.Errorf("address is not valid host:port: %w", err)
-		}
-		if hostOverride != "" {
-			host = hostOverride
-		}
-		if portOverride != "" {
-			port = portOverride
-		}
-		return net.JoinHostPort(host, port), nil
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// Optimization when we fully override the address.

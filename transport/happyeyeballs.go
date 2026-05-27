@@ -16,12 +16,7 @@ package transport
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"net"
 	"net/netip"
-	"sync/atomic"
-	"time"
 )
 
 /*
@@ -78,182 +73,81 @@ type HappyEyeballsResolution struct {
 // Typically you will pass one function for IPv6 and one for IPv4 to achieve Happy Eyballs v2 behavior.
 // It takes care of creating the channel and the parallelization and coordination between the calls.
 func NewParallelHappyEyeballsResolveFunc(resolveFuncs ...func(ctx context.Context, hostname string) ([]netip.Addr, error)) HappyEyeballsResolveFunc {
-	return func(ctx context.Context, host string) <-chan HappyEyeballsResolution {
-		// Use a buffered channel with space for both lookups, to ensure the goroutines won't
-		// block on channel write if the Happy Eyeballs algorithm is cancelled and no longer reading.
-		resultsCh := make(chan HappyEyeballsResolution, len(resolveFuncs))
-		if len(resolveFuncs) == 0 {
-			close(resultsCh)
-			return resultsCh
-		}
-
-		var pending atomic.Int32
-		pending.Store(int32(len(resolveFuncs)))
-		for _, resolve := range resolveFuncs {
-			go func(resolve func(ctx context.Context, hostname string) ([]netip.Addr, error), hostname string) {
-				ips, err := resolve(ctx, hostname)
-				resultsCh <- HappyEyeballsResolution{ips, err}
-				if pending.Add(-1) == 0 {
-					// Close results channel when no other goroutine is pending.
-					close(resultsCh)
-				}
-			}(resolve, host)
-		}
-		return resultsCh
-	}
+	_ = "STUB: not implemented"
+	return *new(HappyEyeballsResolveFunc)
 }
+
+// Use a buffered channel with space for both lookups, to ensure the goroutines won't
+// block on channel write if the Happy Eyeballs algorithm is cancelled and no longer reading.
+
+// Close results channel when no other goroutine is pending.
 
 var _ StreamDialer = (*HappyEyeballsStreamDialer)(nil)
 
 func (d *HappyEyeballsStreamDialer) dial(ctx context.Context, addr string) (StreamConn, error) {
-	if d.Dialer != nil {
-		return d.Dialer.DialStream(ctx, addr)
-	}
-	return (&TCPDialer{}).DialStream(ctx, addr)
+	_ = "STUB: not implemented"
+	return *new(StreamConn), nil
 }
 
-func newClosedChan() <-chan struct{} {
-	closedCh := make(chan struct{})
-	close(closedCh)
-	return closedCh
-}
+func newClosedChan() <-chan struct{} { _ = "STUB: not implemented"; return nil }
 
 // DialStream implements [StreamDialer].
 func (d *HappyEyeballsStreamDialer) DialStream(ctx context.Context, addr string) (StreamConn, error) {
-	hostname, port, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse address: %w", err)
-	}
-	if net.ParseIP(hostname) != nil {
-		// Host is already an IP address, just dial the address.
-		return d.dial(ctx, addr)
-	}
-
-	// Indicates to attempts that the dialing process is done, so they don't get stuck.
-	ctx, dialDone := context.WithCancel(ctx)
-	defer dialDone()
-
-	// HOSTNAME RESOLUTION QUERY HANDLING
-	// https://datatracker.ietf.org/doc/html/rfc8305#section-3
-	resolutionCh := d.Resolve(ctx, hostname)
-
-	// CONNECTION ATTEMPTS
-	// https://datatracker.ietf.org/doc/html/rfc8305#section-5
-	// We keep IPv4s and IPv6 separate and track the last one attempted so we can
-	// alternate the address family in the connection attempts.
-	ip4s := make([]netip.Addr, 0, 1)
-	ip6s := make([]netip.Addr, 0, 1)
-	var lastDialed netip.Addr
-	// Keep track of the lookup and dial errors separately. We prefer the dial errors
-	// when returning.
-	var lookupErr error
-	var dialErr error
-	// Channel to wait for before a new dial attempt. It starts
-	// with a closed channel that doesn't block because there's no
-	// wait initially.
-	var attemptDelayCh <-chan struct{} = newClosedChan()
-	type DialResult struct {
-		Conn StreamConn
-		Err  error
-	}
-	dialCh := make(chan DialResult)
-
-	// Channel that triggers when a new connection can be made. Starts blocked (nil)
-	// because we need IPs first.
-	var readyToDialCh <-chan struct{} = nil
-	// We keep track of pending operations (lookups and IPs to dial) so we can stop when
-	// there's no more work to wait for.
-	for opsPending := 1; opsPending > 0; {
-		if len(ip6s) == 0 && len(ip4s) == 0 {
-			// No IPs. Keep dial disabled.
-			readyToDialCh = nil
-		} else {
-			// There are IPs to dial.
-			if !lastDialed.IsValid() && len(ip6s) == 0 && resolutionCh != nil {
-				// Attempts haven't started and IPv6 lookup is not done yet. Set up Resolution Delay, as per
-				// https://datatracker.ietf.org/doc/html/rfc8305#section-8, if it hasn't been set up yet.
-				if readyToDialCh == nil {
-					resolutionDelayCtx, cancelResolutionDelay := context.WithTimeout(ctx, 50*time.Millisecond)
-					defer cancelResolutionDelay()
-					readyToDialCh = resolutionDelayCtx.Done()
-				}
-			} else {
-				// Wait for the previous attempt.
-				readyToDialCh = attemptDelayCh
-			}
-		}
-		select {
-		// Receive lookup results.
-		case lookupRes, ok := <-resolutionCh:
-			if !ok {
-				opsPending--
-				// Set to nil to make the read on lookupCh block and to signal lookup is done.
-				resolutionCh = nil
-			}
-			if lookupRes.Err != nil {
-				lookupErr = errors.Join(lookupErr, lookupRes.Err)
-				continue
-			}
-			opsPending += len(lookupRes.IPs)
-			// TODO: sort IPs as per https://datatracker.ietf.org/doc/html/rfc8305#section-4
-			for _, ip := range lookupRes.IPs {
-				if ip.Is6() {
-					ip6s = append(ip6s, ip)
-				} else {
-					ip4s = append(ip4s, ip)
-				}
-			}
-
-		// Wait for Connection Attempt Delay or attempt done.
-		// This case is disabled above when len(ip6s) == 0 && len(ip4s) == 0.
-		case <-readyToDialCh:
-			var toDial netip.Addr
-			// Alternate between IPv6 and IPv4.
-			if len(ip6s) == 0 || (lastDialed.Is6() && len(ip4s) > 0) {
-				toDial = ip4s[0]
-				ip4s = ip4s[1:]
-			} else {
-				toDial = ip6s[0]
-				ip6s = ip6s[1:]
-			}
-			// Reset Connection Attempt Delay, as per https://datatracker.ietf.org/doc/html/rfc8305#section-8
-			// We don't tie the delay context to the parent because we don't want the readyToDialCh case
-			// to trigger on the parent cancellation.
-			delayCtx, cancelDelay := context.WithTimeout(context.Background(), 250*time.Millisecond)
-			attemptDelayCh = delayCtx.Done()
-			go func(addr string, cancelDelay context.CancelFunc) {
-				// Cancel the wait if the dial return early.
-				defer cancelDelay()
-				conn, err := d.dial(ctx, addr)
-				select {
-				case <-ctx.Done():
-					if conn != nil {
-						conn.Close()
-					}
-				case dialCh <- DialResult{conn, err}:
-				}
-			}(net.JoinHostPort(toDial.String(), port), cancelDelay)
-			lastDialed = toDial
-
-		// Receive dial result.
-		case dialRes := <-dialCh:
-			opsPending--
-			if dialRes.Err != nil {
-				dialErr = errors.Join(dialErr, dialRes.Err)
-				continue
-			}
-			return dialRes.Conn, nil
-
-		// Dial has been canceled. Return.
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
-	}
-	if dialErr != nil {
-		return nil, dialErr
-	}
-	if lookupErr != nil {
-		return nil, lookupErr
-	}
-	return nil, errors.New("address lookup returned no IPs")
+	_ = "STUB: not implemented"
+	return *new(StreamConn), nil
 }
+
+// Host is already an IP address, just dial the address.
+
+// Indicates to attempts that the dialing process is done, so they don't get stuck.
+
+// HOSTNAME RESOLUTION QUERY HANDLING
+// https://datatracker.ietf.org/doc/html/rfc8305#section-3
+
+// CONNECTION ATTEMPTS
+// https://datatracker.ietf.org/doc/html/rfc8305#section-5
+// We keep IPv4s and IPv6 separate and track the last one attempted so we can
+// alternate the address family in the connection attempts.
+
+// Keep track of the lookup and dial errors separately. We prefer the dial errors
+// when returning.
+
+// Channel to wait for before a new dial attempt. It starts
+// with a closed channel that doesn't block because there's no
+// wait initially.
+
+// Channel that triggers when a new connection can be made. Starts blocked (nil)
+// because we need IPs first.
+
+// We keep track of pending operations (lookups and IPs to dial) so we can stop when
+// there's no more work to wait for.
+
+// No IPs. Keep dial disabled.
+
+// There are IPs to dial.
+
+// Attempts haven't started and IPv6 lookup is not done yet. Set up Resolution Delay, as per
+// https://datatracker.ietf.org/doc/html/rfc8305#section-8, if it hasn't been set up yet.
+
+// Wait for the previous attempt.
+
+// Receive lookup results.
+
+// Set to nil to make the read on lookupCh block and to signal lookup is done.
+
+// TODO: sort IPs as per https://datatracker.ietf.org/doc/html/rfc8305#section-4
+
+// Wait for Connection Attempt Delay or attempt done.
+// This case is disabled above when len(ip6s) == 0 && len(ip4s) == 0.
+
+// Alternate between IPv6 and IPv4.
+
+// Reset Connection Attempt Delay, as per https://datatracker.ietf.org/doc/html/rfc8305#section-8
+// We don't tie the delay context to the parent because we don't want the readyToDialCh case
+// to trigger on the parent cancellation.
+
+// Cancel the wait if the dial return early.
+
+// Receive dial result.
+
+// Dial has been canceled. Return.

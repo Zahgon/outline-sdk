@@ -15,11 +15,7 @@
 package mobileproxy
 
 import (
-	"context"
-	"fmt"
 	"io"
-	"os"
-	"strings"
 	"time"
 
 	"golang.getoutline.org/sdk/transport"
@@ -37,11 +33,8 @@ var configRegistry = configurl.NewDefaultProviders()
 // NewStreamDialerFromConfig creates a [StreamDialer] based on the given config.
 // The config format is specified in https://pkg.go.dev/golang.getoutline.org/sdk/x/configurl#hdr-Config_Format.
 func NewStreamDialerFromConfig(transportConfig string) (*StreamDialer, error) {
-	dialer, err := configRegistry.NewStreamDialer(context.Background(), transportConfig)
-	if err != nil {
-		return nil, err
-	}
-	return &StreamDialer{dialer}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // SmartDialerOptions specifies the options for creating a "Smart Dialer".
@@ -66,70 +59,40 @@ type SmartDialerOptions struct {
 // `config` defines the strategies to test. For an example, see:
 // https://golang.getoutline.org/sdk/blob/main/x/examples/smart-proxy/config.yaml
 func NewSmartDialerOptions(testDomains *StringList, config string) *SmartDialerOptions {
-	return &SmartDialerOptions{
-		testDomains: testDomains.list,
-		config:      []byte(config),
-		testTimeout: 5 * time.Second,
-		baseSD:      &transport.TCPDialer{},
-		basePD:      &transport.UDPDialer{},
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
 func (opt *SmartDialerOptions) ensureFallbackParsers() map[string]smart.FallbackParser {
-	if opt.fallbackParsers == nil {
-		opt.fallbackParsers = make(map[string]smart.FallbackParser)
-	}
-	return opt.fallbackParsers
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // SetLogWriter configures an optional LogWriter for logging the strategy selection process.
-func (opt *SmartDialerOptions) SetLogWriter(logw LogWriter) {
-	if logw == nil {
-		opt.logWriter = nil
-	} else {
-		opt.logWriter = toWriter(logw)
-	}
-}
+func (opt *SmartDialerOptions) SetLogWriter(logw LogWriter) { _ = "STUB: not implemented"; return }
 
 // SetStrategyCache configures an optional StrategyCache to store successful strategies,
 // speeding up NewDialer calls.
 func (opt *SmartDialerOptions) SetStrategyCache(cache StrategyCache) {
-	if cache == nil {
-		opt.cache = nil
-	} else {
-		opt.cache = &strategyCacheAdapter{cache}
-	}
+	_ = "STUB: not implemented"
+	return
 }
 
 func (opt *SmartDialerOptions) RegisterFallbackParser(name string, parser smart.FallbackParser) {
-	opt.ensureFallbackParsers()[name] = parser
+	_ = "STUB: not implemented"
+	return
 }
 
 // NewStreamDialer creates a new "Smart" StreamDialer using the configured options.
 // It finds the best-performing DNS/TLS strategy and returns a StreamDialer that uses this strategy.
 func (opt *SmartDialerOptions) NewStreamDialer() (*StreamDialer, error) {
+	_ = "STUB: not implemented"
 	// TODO: inject the base dialer for tests.
-	finder := smart.StrategyFinder{
-		LogWriter:    opt.logWriter,
-		TestTimeout:  opt.testTimeout,
-		StreamDialer: opt.baseSD,
-		PacketDialer: opt.basePD,
-	}
-	for name, parser := range opt.ensureFallbackParsers() {
-		finder.RegisterFallbackParser(name, parser)
-	}
-	// When assigning a nil concrete value to an interface, the interface is not nil
-	// but contains a nil value. The `if` check is necessary to avoid a panic.
-	if opt.cache != nil {
-		finder.Cache = opt.cache
-	}
-
-	dialer, err := finder.NewDialer(context.Background(), opt.testDomains, opt.config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find dialer: %w", err)
-	}
-	return &StreamDialer{dialer}, nil
+	return nil, nil
 }
+
+// When assigning a nil concrete value to an interface, the interface is not nil
+// but contains a nil value. The `if` check is necessary to avoid a panic.
 
 // NewSmartStreamDialer automatically selects a DNS and TLS strategy to use, and returns a [StreamDialer]
 // that will use the selected strategy.
@@ -139,9 +102,8 @@ func (opt *SmartDialerOptions) NewStreamDialer() (*StreamDialer, error) {
 //
 // Deprecated: Use [SmartDialerOptions] NewStreamDialer instead.
 func NewSmartStreamDialer(testDomains *StringList, searchConfig string, logWriter LogWriter) (*StreamDialer, error) {
-	opt := NewSmartDialerOptions(testDomains, searchConfig)
-	opt.SetLogWriter(logWriter)
-	return opt.NewStreamDialer()
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // StringList allows us to pass a list of strings to the Go Mobile functions, since Go Mobile doesn't
@@ -151,22 +113,16 @@ type StringList struct {
 }
 
 // Append adds the string value to the end of the list.
-func (l *StringList) Append(value string) {
-	l.list = append(l.list, value)
-}
+func (l *StringList) Append(value string) { _ = "STUB: not implemented"; return }
 
 // NewListFromLines creates a StringList by splitting the input string on new lines.
-func NewListFromLines(lines string) *StringList {
-	return &StringList{list: strings.Split(lines, "\n")}
-}
+func NewListFromLines(lines string) *StringList { _ = "STUB: not implemented"; return nil }
 
 // LogWriter is used as a sink for logging.
 type LogWriter io.StringWriter
 
 // NewStderrLogWriter creates a [LogWriter] that writes to the standard error output.
-func NewStderrLogWriter() LogWriter {
-	return &stringToBytesWriter{os.Stderr}
-}
+func NewStderrLogWriter() LogWriter { _ = "STUB: not implemented"; return *new(LogWriter) }
 
 // Adaptor to convert an [io.StringWriter] to a [io.Writer].
 type stringToBytesWriter struct {
@@ -175,7 +131,8 @@ type stringToBytesWriter struct {
 
 // WriteString implements [io.StringWriter].
 func (w *stringToBytesWriter) WriteString(logText string) (int, error) {
-	return io.WriteString(w.w, logText)
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // Adaptor to convert an [io.Writer] to a [io.StringWriter].
@@ -185,18 +142,11 @@ type bytestoStringWriter struct {
 
 // Write implements [io.Writer].
 func (w *bytestoStringWriter) Write(b []byte) (int, error) {
-	return w.sw.WriteString(string(b))
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
-func toWriter(logWriter LogWriter) io.Writer {
-	if logWriter == nil {
-		return nil
-	}
-	if w, ok := logWriter.(io.Writer); ok {
-		return w
-	}
-	return &bytestoStringWriter{logWriter}
-}
+func toWriter(logWriter LogWriter) io.Writer { _ = "STUB: not implemented"; return *new(io.Writer) }
 
 // StrategyCache enables storing and retrieving successful strategies.
 // Clients are required to provide a platform-specific implementation of this interface.
@@ -219,13 +169,8 @@ type strategyCacheAdapter struct {
 }
 
 func (sc *strategyCacheAdapter) Get(key string) (value []byte, ok bool) {
-	v := sc.impl.Get(key)
-	if v == "" {
-		return nil, false
-	}
-	return []byte(v), true
+	_ = "STUB: not implemented"
+	return nil, false
 }
 
-func (sc *strategyCacheAdapter) Put(key string, value []byte) {
-	sc.impl.Put(key, string(value))
-}
+func (sc *strategyCacheAdapter) Put(key string, value []byte) { _ = "STUB: not implemented"; return }

@@ -16,67 +16,27 @@ package smart
 
 import (
 	"context"
-	"errors"
 	"time"
 )
 
 // Returns a read channel that is already closed.
-func newClosedChanel() <-chan struct{} {
-	ch := make(chan struct{})
-	close(ch)
-	return ch
-}
+func newClosedChanel() <-chan struct{} { _ = "STUB: not implemented"; return nil }
 
 // raceTests will call the test function on each entry until it finds an entry for which the test returns nil error.
 // That entry is returned. A test is only started after the previous test finished or maxWait is done, whichever
 // happens first. That way you bound the wait for a test, and they may overlap.
 // The test function should make use of the context to stop doing work when the race is done and it is no longer needed.
 func raceTests[E any, R any](ctx context.Context, maxWait time.Duration, entries []E, test func(index int, entry E) (R, error)) (R, error) {
-	type testResult struct {
-		Result R
-		Err    error
-	}
-	// Communicates the result of each test.
-	resultChan := make(chan testResult, len(entries))
-	waitCh := newClosedChanel()
-
-	next := 0
-	for toTest := len(entries); toTest > 0; {
-		select {
-		// Search cancelled, quit.
-		case <-ctx.Done():
-			var empty R
-			return empty, ctx.Err()
-
-		// Ready to start testing another resolver.
-		case <-waitCh:
-			index := next
-			entry := entries[index]
-			next++
-
-			waitCtx, waitDone := context.WithTimeout(ctx, maxWait)
-			if next == len(entries) {
-				// Done with entries. No longer trigger on waitCh.
-				waitCh = nil
-			} else {
-				waitCh = waitCtx.Done()
-			}
-
-			go func(entry E, testDone context.CancelFunc) {
-				defer testDone()
-				result, err := test(index, entry)
-				resultChan <- testResult{Result: result, Err: err}
-			}(entry, waitDone)
-
-		// Got a test result.
-		case result := <-resultChan:
-			toTest--
-			if result.Err != nil {
-				continue
-			}
-			return result.Result, nil
-		}
-	}
-	var empty R
-	return empty, errors.New("all tests failed")
+	_ = "STUB: not implemented"
+	return *new(R), nil
 }
+
+// Communicates the result of each test.
+
+// Search cancelled, quit.
+
+// Ready to start testing another resolver.
+
+// Done with entries. No longer trigger on waitCh.
+
+// Got a test result.

@@ -15,7 +15,6 @@
 package httpconnect
 
 import (
-	"errors"
 	"io"
 	"net"
 	"time"
@@ -42,49 +41,26 @@ type writeCloseDeadliner interface {
 }
 
 func newPipeConn(writer writeCloseDeadliner, reader readCloseDeadliner, remoteAddr net.Addr) *pipeConn {
-	return &pipeConn{
-		reader:     reader,
-		writer:     writer,
-		remoteAddr: remoteAddr,
-	}
-}
-
-func (p *pipeConn) Read(b []byte) (n int, err error) {
-	return p.reader.Read(b)
-}
-
-func (p *pipeConn) Write(b []byte) (n int, err error) {
-	return p.writer.Write(b)
-}
-
-func (p *pipeConn) CloseRead() error {
-	return p.reader.Close()
-}
-
-func (p *pipeConn) CloseWrite() error {
-	return p.writer.Close()
-}
-
-func (p *pipeConn) Close() error {
-	return errors.Join(p.reader.Close(), p.writer.Close())
-}
-
-func (p *pipeConn) LocalAddr() net.Addr {
+	_ = "STUB: not implemented"
 	return nil
 }
 
-func (p *pipeConn) RemoteAddr() net.Addr {
-	return p.remoteAddr
-}
+func (p *pipeConn) Read(b []byte) (n int, err error) { _ = "STUB: not implemented"; return 0, nil }
 
-func (p *pipeConn) SetDeadline(t time.Time) error {
-	return errors.Join(p.writer.SetDeadline(t), p.reader.SetDeadline(t))
-}
+func (p *pipeConn) Write(b []byte) (n int, err error) { _ = "STUB: not implemented"; return 0, nil }
 
-func (p *pipeConn) SetReadDeadline(t time.Time) error {
-	return p.reader.SetDeadline(t)
-}
+func (p *pipeConn) CloseRead() error { _ = "STUB: not implemented"; return nil }
 
-func (p *pipeConn) SetWriteDeadline(t time.Time) error {
-	return p.writer.SetDeadline(t)
-}
+func (p *pipeConn) CloseWrite() error { _ = "STUB: not implemented"; return nil }
+
+func (p *pipeConn) Close() error { _ = "STUB: not implemented"; return nil }
+
+func (p *pipeConn) LocalAddr() net.Addr { _ = "STUB: not implemented"; return *new(net.Addr) }
+
+func (p *pipeConn) RemoteAddr() net.Addr { _ = "STUB: not implemented"; return *new(net.Addr) }
+
+func (p *pipeConn) SetDeadline(t time.Time) error { _ = "STUB: not implemented"; return nil }
+
+func (p *pipeConn) SetReadDeadline(t time.Time) error { _ = "STUB: not implemented"; return nil }
+
+func (p *pipeConn) SetWriteDeadline(t time.Time) error { _ = "STUB: not implemented"; return nil }

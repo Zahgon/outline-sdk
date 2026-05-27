@@ -15,9 +15,6 @@
 package dnstruncate
 
 import (
-	"errors"
-	"fmt"
-	"net"
 	"net/netip"
 	"sync/atomic"
 
@@ -91,64 +88,39 @@ var _ network.PacketRequestSender = (*dnsTruncateRequestHandler)(nil)
 // This [network.PacketProxy] should only be used if the remote proxy server doesn't support UDP traffic at all. Note
 // that all other non-DNS UDP packets will be dropped by this [network.PacketProxy].
 func NewPacketProxy() (network.PacketProxy, error) {
-	return &dnsTruncateProxy{}, nil
+	_ = "STUB: not implemented"
+	return *new(network.PacketProxy), nil
 }
 
 // NewSession implements [network.PacketProxy].NewSession(). It creates a new [network.PacketRequestSender] that will
 // set the TC (truncated) bit and write the response to `respWriter`.
 func (p *dnsTruncateProxy) NewSession(respWriter network.PacketResponseReceiver) (network.PacketRequestSender, error) {
-	if respWriter == nil {
-		return nil, errors.New("respWriter is required")
-	}
-	return &dnsTruncateRequestHandler{
-		respWriter: respWriter,
-	}, nil
+	_ = "STUB: not implemented"
+	return *new(network.PacketRequestSender), nil
 }
 
 // Close implements [network.PacketRequestSender].Close(), and it closes the corresponding
 // [network.PacketResponseReceiver].
-func (h *dnsTruncateRequestHandler) Close() error {
-	if !h.closed.CompareAndSwap(false, true) {
-		return network.ErrClosed
-	}
-	h.respWriter.Close()
-	return nil
-}
+func (h *dnsTruncateRequestHandler) Close() error { _ = "STUB: not implemented"; return nil }
 
 // WriteTo implements [network.PacketRequestSender].WriteTo(). It parses a packet from p, and determines whether it is
 // a valid DNS request. If so, it will write the DNS response with TC (truncated) bit set to the corresponding
 // [network.PacketResponseReceiver] passed to NewSession. If it is not a valid DNS request, the packet will be
 // discarded and returns an error.
 func (h *dnsTruncateRequestHandler) WriteTo(p []byte, destination netip.AddrPort) (int, error) {
-	if h.closed.Load() {
-		return 0, network.ErrClosed
-	}
-	if destination.Port() != standardDNSPort {
-		return 0, fmt.Errorf("UDP traffic to non-DNS port %v is not supported: %w", destination.Port(), network.ErrPortUnreachable)
-	}
-	if len(p) < dnsUdpMinMsgLen {
-		return 0, fmt.Errorf("invalid DNS message of length %v, it must be at least %v bytes", len(p), dnsUdpMinMsgLen)
-	}
-
-	// Allocate buffer from slicepool, because `go build -gcflags="-m"` shows a local array will escape to heap
-	slice := packetBufferPool.LazySlice()
-	buf := slice.Acquire()
-	defer slice.Release()
-
-	// We need to copy p into buf because "WriteTo must not modify p, even temporarily".
-	n := copy(buf, p)
-
-	// Set "Response", "Truncated" and "NoError"
-	// Note: gopacket is a good library doing this kind of things. But it will increase the binary size a lot.
-	//       If we decide to use gopacket in the future, please evaluate the binary size and runtime memory consumption.
-	buf[dnsUdpAnswerByte] |= (dnsUdpResponseBit | dnsUdpTruncatedBit)
-	buf[dnsUdpRCodeByte] &= ^dnsUdpRCodeMask
-
-	// Copy QDCOUNT to ANCOUNT. This is an incorrect workaround for some DNS clients (such as Windows 7);
-	// because without these clients won't retry over TCP.
-	//
-	// For reference: https://github.com/eycorsican/go-tun2socks/blob/master/proxy/dnsfallback/udp.go#L59-L63
-	copy(buf[dnsARCntStartByte:dnsARCntEndByte+1], buf[dnsQDCntStartByte:dnsQDCntEndByte+1])
-
-	return h.respWriter.WriteFrom(buf[:n], net.UDPAddrFromAddrPort(destination))
+	_ = "STUB: not implemented"
+	return 0, nil
 }
+
+// Allocate buffer from slicepool, because `go build -gcflags="-m"` shows a local array will escape to heap
+
+// We need to copy p into buf because "WriteTo must not modify p, even temporarily".
+
+// Set "Response", "Truncated" and "NoError"
+// Note: gopacket is a good library doing this kind of things. But it will increase the binary size a lot.
+//       If we decide to use gopacket in the future, please evaluate the binary size and runtime memory consumption.
+
+// Copy QDCOUNT to ANCOUNT. This is an incorrect workaround for some DNS clients (such as Windows 7);
+// because without these clients won't retry over TCP.
+//
+// For reference: https://github.com/eycorsican/go-tun2socks/blob/master/proxy/dnsfallback/udp.go#L59-L63

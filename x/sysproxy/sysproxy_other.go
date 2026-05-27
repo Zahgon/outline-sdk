@@ -16,24 +16,14 @@
 
 package sysproxy
 
-import "errors"
+// SetProxy does nothing on unsupported platforms.
+func SetWebProxy(ip string, port string) error { _ = "STUB: not implemented"; return nil }
 
 // SetProxy does nothing on unsupported platforms.
-func SetWebProxy(ip string, port string) error {
-	return errors.New("unsupported platform")
-}
+func DisableWebProxy() error { _ = "STUB: not implemented"; return nil }
 
 // SetProxy does nothing on unsupported platforms.
-func DisableWebProxy() error {
-	return errors.New("unsupported platform")
-}
+func SetSOCKSProxy(ip string, port string) error { _ = "STUB: not implemented"; return nil }
 
 // SetProxy does nothing on unsupported platforms.
-func SetSOCKSProxy(ip string, port string) error {
-	return errors.New("unsupported platform")
-}
-
-// SetProxy does nothing on unsupported platforms.
-func DisableSOCKSProxy() error {
-	return errors.New("unsupported platform")
-}
+func DisableSOCKSProxy() error { _ = "STUB: not implemented"; return nil }

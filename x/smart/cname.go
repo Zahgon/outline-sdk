@@ -18,9 +18,9 @@ package smart
 
 import (
 	"context"
-	"net"
 )
 
 func lookupCNAME(ctx context.Context, domain string) (string, error) {
-	return net.DefaultResolver.LookupCNAME(ctx, domain)
+	_ = "STUB: not implemented"
+	return "", nil
 }

@@ -15,13 +15,7 @@
 package connectivity
 
 import (
-	"fmt"
 	"syscall"
 )
 
-func errnoName(errno syscall.Errno) string {
-	if name := systemErrnoName(errno); len(name) > 0 {
-		return name
-	}
-	return fmt.Sprintf("Error %d (0x%x)", int(errno), int(errno))
-}
+func errnoName(errno syscall.Errno) string { _ = "STUB: not implemented"; return "" }

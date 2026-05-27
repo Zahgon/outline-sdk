@@ -15,17 +15,12 @@
 package socks5
 
 import (
-	"bytes"
 	"context"
-	"errors"
-	"fmt"
 	"io"
 	"net"
-	"net/netip"
 	"time"
 
 	"golang.getoutline.org/sdk/internal/slicepool"
-	"golang.getoutline.org/sdk/transport"
 )
 
 // clientUDPBufferSize is the maximum supported UDP packet size in bytes.
@@ -41,112 +36,58 @@ type packetConn struct {
 
 var _ net.PacketConn = (*packetConn)(nil)
 
-func (p *packetConn) LocalAddr() net.Addr {
-	return p.pc.LocalAddr()
-}
+func (p *packetConn) LocalAddr() net.Addr { _ = "STUB: not implemented"; return *new(net.Addr) }
 
-func (p *packetConn) SetDeadline(t time.Time) error {
-	return p.pc.SetDeadline(t)
-}
+func (p *packetConn) SetDeadline(t time.Time) error { _ = "STUB: not implemented"; return nil }
 
-func (p *packetConn) SetReadDeadline(t time.Time) error {
-	return p.pc.SetReadDeadline(t)
-}
+func (p *packetConn) SetReadDeadline(t time.Time) error { _ = "STUB: not implemented"; return nil }
 
-func (c *packetConn) SetWriteDeadline(t time.Time) error {
-	return c.pc.SetWriteDeadline(t)
-}
+func (c *packetConn) SetWriteDeadline(t time.Time) error { _ = "STUB: not implemented"; return nil }
 
 // ReadFrom reads the packet from the SOCKS5 server and extract the payload
 // The packet format is specified in https://datatracker.ietf.org/doc/html/rfc1928#section-7
 func (p *packetConn) ReadFrom(b []byte) (int, net.Addr, error) {
-	lazySlice := udpPool.LazySlice()
-	buffer := lazySlice.Acquire()
-	defer lazySlice.Release()
-
-	n, err := p.pc.Read(buffer)
-	if err != nil {
-		return 0, nil, err
-	}
-	// Minimum packet size
-	if n < 10 {
-		return 0, nil, errors.New("invalid SOCKS5 UDP packet: too short")
-	}
-
-	// Using bytes.Buffer to handle data
-	buf := bytes.NewBuffer(buffer[:n])
-
-	// Read and check reserved bytes
-	rsv := make([]byte, 2)
-	if _, err := buf.Read(rsv); err != nil {
-		return 0, nil, err
-	}
-	if rsv[0] != 0x00 || rsv[1] != 0x00 {
-		return 0, nil, fmt.Errorf("invalid reserved bytes: expected 0x0000, got %#x%#x", rsv[0], rsv[1])
-	}
-
-	// Read fragment byte
-	frag, err := buf.ReadByte()
-	if err != nil {
-		return 0, nil, err
-	}
-	if frag != 0 {
-		return 0, nil, errors.New("fragmentation is not supported")
-	}
-
-	// Read address using socks.ReadAddr which must now accept a bytes.Buffer directly
-	address, err := readAddr(buf)
-	if err != nil {
-		return 0, nil, fmt.Errorf("failed to read address: %w", err)
-	}
-
-	// Convert the address to a net.Addr
-	addr, err := transport.MakeNetAddr("udp", addrToString(address))
-	if err != nil {
-		return 0, nil, fmt.Errorf("failed to convert address: %w", err)
-	}
-
-	// Payload handling: remaining bytes in the buffer are the payload
-	payload := buf.Bytes()
-	payloadLength := len(payload)
-	if payloadLength > len(b) {
-		return 0, nil, io.ErrShortBuffer
-	}
-	copy(b, payload)
-
-	return payloadLength, addr, nil
+	_ = "STUB: not implemented"
+	return 0, *new(net.Addr), nil
 }
+
+// Minimum packet size
+
+// Using bytes.Buffer to handle data
+
+// Read and check reserved bytes
+
+// Read fragment byte
+
+// Read address using socks.ReadAddr which must now accept a bytes.Buffer directly
+
+// Convert the address to a net.Addr
+
+// Payload handling: remaining bytes in the buffer are the payload
 
 // WriteTo encapsulates the payload in a SOCKS5 UDP packet as specified in
 // https://datatracker.ietf.org/doc/html/rfc1928#section-7
 // and write it to the SOCKS5 server via the underlying connection.
 func (p *packetConn) WriteTo(b []byte, addr net.Addr) (int, error) {
+	_ = "STUB: not implemented"
 
 	// The minimum preallocated header size (10 bytes)
-	lazySlice := udpPool.LazySlice()
-	buffer := lazySlice.Acquire()
-	defer lazySlice.Release()
-	buffer = append(buffer[:0],
-		0x00, 0x00, // Reserved
-		0x00, // Fragment number
-		// To be appended below:
-		// ATYP, IPv4, IPv6, Domain Name, Port
-	)
-	buffer, err := appendSOCKS5Address(buffer, addr.String())
-	if err != nil {
-		return 0, fmt.Errorf("failed to append SOCKS5 address: %w", err)
-	}
-	// Combine the header and the payload
-	return p.pc.Write(append(buffer, b...))
+	return 0, nil
 }
 
+// Reserved
+// Fragment number
+// To be appended below:
+// ATYP, IPv4, IPv6, Domain Name, Port
+
+// Combine the header and the payload
+
 // Close closes both the underlying stream and packet connections.
-func (p *packetConn) Close() error {
-	return errors.Join(p.sc.Close(), p.pc.Close())
-}
+func (p *packetConn) Close() error { _ = "STUB: not implemented"; return nil }
 
 // ListenPacket creates a [net.PacketConn] for UDP communication via the SOCKS5 server.
 func (c *Client) ListenPacket(ctx context.Context) (net.PacketConn, error) {
+	_ = "STUB: not implemented"
 	// Connect to the SOCKS5 server and perform UDP association
 	// Since local address is not known in advance, we use unspecified address
 	// which means the server is going to accept incoming packets from any address
@@ -155,29 +96,8 @@ func (c *Client) ListenPacket(ctx context.Context) (net.PacketConn, error) {
 	// https://datatracker.ietf.org/doc/html/rfc1928#section-6
 	// Whoile binding address to specific client address has its advantages, it also creates some
 	// challenges such as NAT traveral if client is behind NAT.
-	sc, bindAddr, err := c.connectAndRequest(ctx, CmdUDPAssociate, "0.0.0.0:0")
-	if err != nil {
-		return nil, err
-	}
-
-	// If the returned bind IP address is unspecified (i.e. "0.0.0.0" or "::"),
-	// then use the IP address of the SOCKS5 server
-	if ipAddr := bindAddr.IP; ipAddr.IsValid() && ipAddr.IsUnspecified() {
-		schost, _, err := net.SplitHostPort(sc.RemoteAddr().String())
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse tcp address: %w", err)
-		}
-
-		bindAddr.IP, err = netip.ParseAddr(schost)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse bind address: %w", err)
-		}
-	}
-
-	proxyConn, err := c.pd.DialPacket(ctx, addrToString(bindAddr))
-	if err != nil {
-		sc.Close()
-		return nil, fmt.Errorf("could not connect to packet endpoint: %w", err)
-	}
-	return &packetConn{pc: proxyConn, sc: sc}, nil
+	return *new(net.PacketConn), nil
 }
+
+// If the returned bind IP address is unspecified (i.e. "0.0.0.0" or "::"),
+// then use the IP address of the SOCKS5 server

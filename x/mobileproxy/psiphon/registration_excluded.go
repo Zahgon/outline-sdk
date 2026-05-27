@@ -18,13 +18,12 @@ package psiphon
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"golang.getoutline.org/sdk/transport"
 	"golang.getoutline.org/sdk/x/smart"
 )
 
 func parsePsiphon(ctx context.Context, psiphonCfg smart.YAMLNode) (transport.StreamDialer, error) {
-	return nil, fmt.Errorf("%.0wattempted to start psiphon tunnel but library was built without psiphon support. Please build using -tag psiphon", errors.ErrUnsupported)
+	_ = "STUB: not implemented"
+	return *new(transport.StreamDialer), nil
 }

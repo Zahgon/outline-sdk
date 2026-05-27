@@ -19,13 +19,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
-	"runtime"
-	"strings"
 	"sync"
-	"unicode"
 
 	"golang.getoutline.org/sdk/transport"
-	"github.com/Psiphon-Labs/psiphon-tunnel-core/ClientLibrary/clientlib"
 )
 
 // The single [Dialer] we can have.
@@ -75,138 +71,55 @@ var _ transport.StreamDialer = (*Dialer)(nil)
 // The context is not used because Psiphon's implementation doesn't support it. If you need cancellation,
 // you will need to add it independently.
 func (d *Dialer) DialStream(unusedContext context.Context, addr string) (transport.StreamConn, error) {
-	d.mu.Lock()
-	tunnel := d.tunnel
-	d.mu.Unlock()
-	if tunnel == nil {
-		return nil, errNotStartedDial
-	}
-	netConn, err := tunnel.Dial(addr)
-	if err != nil {
-		return nil, err
-	}
-	return streamConn{netConn}, nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamConn), nil
 }
 
-func getClientPlatform() string {
-	clientPlatformAllowChars := func(r rune) bool {
-		return !unicode.IsSpace(r) && r != '_'
-	}
-	goos := strings.Join(strings.FieldsFunc(runtime.GOOS, clientPlatformAllowChars), "-")
-	goarch := strings.Join(strings.FieldsFunc(runtime.GOARCH, clientPlatformAllowChars), "-")
-	return "outline-sdk_" + goos + "_" + goarch
-}
+func getClientPlatform() string { _ = "STUB: not implemented"; return "" }
 
 // Allows for overriding in tests.
 var startTunnel func(ctx context.Context, config *DialerConfig) (psiphonTunnel, error) = psiphonStartTunnel
 
 func psiphonStartTunnel(tunnelCtx context.Context, config *DialerConfig) (psiphonTunnel, error) {
-	if config == nil {
-		return nil, errors.New("config must not be nil")
-	}
-
-	// Note that these parameters override anything in the provider config.
-	clientPlatform := getClientPlatform()
-	trueValue := true
-	params := clientlib.Parameters{
-		DataRootDirectory: &config.DataRootDirectory,
-		ClientPlatform:    &clientPlatform,
-		// Disable Psiphon's local proxy servers, which we don't use.
-		DisableLocalSocksProxy: &trueValue,
-		DisableLocalHTTPProxy:  &trueValue,
-	}
-
-	return clientlib.StartTunnel(tunnelCtx, config.ProviderConfig, "", params, nil, nil)
+	_ = "STUB: not implemented"
+	return *new(psiphonTunnel), nil
 }
+
+// Note that these parameters override anything in the provider config.
+
+// Disable Psiphon's local proxy servers, which we don't use.
 
 // Start configures and runs the Dialer. It must be called before you can use the Dialer. It returns when the tunnel is ready.
 func (d *Dialer) Start(startCtx context.Context, config *DialerConfig) error {
-	resultCh := make(chan error)
-	go func() {
-		d.mu.Lock()
-		defer d.mu.Unlock()
-
-		if d.stop != nil {
-			// If we are already started stop first.
-			stop := d.stop
-			d.stop = nil
-			// Make sure we unlock the mutex so that the previous Start can complete.
-			d.mu.Unlock()
-			stop()
-			d.mu.Lock()
-		}
-
-		// startCtx is intended for the lifetime of the startup.
-		// dialerCtx is intended for the lifetime of the tunnel.
-		dialerCtx, dialerCancel := context.WithCancel(context.Background())
-		defer dialerCancel()
-
-		// This ties startCtx and dialerCtx together
-		// so dialerCtx will be cancelled if startCtx is cancelled.
-		// We run detatchContexts after startTunnel to disconnect them.
-		detatchContexts := context.AfterFunc(startCtx, func() {
-			dialerCancel()
-		})
-
-		tunnelDone := make(chan struct{})
-		defer close(tunnelDone)
-		d.stop = func() {
-			// Tell start to stop.
-			dialerCancel()
-			// Wait for tunnel to be done.
-			<-tunnelDone
-		}
-		defer func() {
-			// Cleanup.
-			d.stop = nil
-		}()
-
-		d.mu.Unlock()
-		tunnel, err := startTunnel(dialerCtx, config)
-
-		d.mu.Lock()
-		detatchContexts()
-
-		if dialerCtx.Err() != nil {
-			err = context.Cause(dialerCtx)
-		}
-		if err != nil {
-			resultCh <- err
-			return
-		}
-		d.tunnel = tunnel
-		defer func() {
-			d.tunnel = nil
-			tunnel.Stop()
-		}()
-		resultCh <- nil
-
-		d.mu.Unlock()
-		// wait for Stop
-		<-dialerCtx.Done()
-		d.mu.Lock()
-	}()
-	return <-resultCh
-}
-
-// Stop stops the Dialer background processes, releasing resources and allowing it to be reconfigured.
-// It returns when the Dialer is completely stopped.
-func (d *Dialer) Stop() error {
-	d.mu.Lock()
-	stop := d.stop
-	d.mu.Unlock()
-
-	if stop == nil {
-		return errNotStartedStop
-	}
-	stop()
+	_ = "STUB: not implemented"
 	return nil
 }
 
+// If we are already started stop first.
+
+// Make sure we unlock the mutex so that the previous Start can complete.
+
+// startCtx is intended for the lifetime of the startup.
+// dialerCtx is intended for the lifetime of the tunnel.
+
+// This ties startCtx and dialerCtx together
+// so dialerCtx will be cancelled if startCtx is cancelled.
+// We run detatchContexts after startTunnel to disconnect them.
+
+// Tell start to stop.
+
+// Wait for tunnel to be done.
+
+// Cleanup.
+
+// wait for Stop
+
+// Stop stops the Dialer background processes, releasing resources and allowing it to be reconfigured.
+// It returns when the Dialer is completely stopped.
+func (d *Dialer) Stop() error { _ = "STUB: not implemented"; return nil }
+
 // GetSingletonDialer returns the single Psiphon dialer instance.
-func GetSingletonDialer() *Dialer {
-	return &singletonDialer
-}
+func GetSingletonDialer() *Dialer { _ = "STUB: not implemented"; return nil }
 
 // streamConn wraps a [net.Conn] to provide a [transport.StreamConn] interface.
 type streamConn struct {
@@ -215,10 +128,6 @@ type streamConn struct {
 
 var _ transport.StreamConn = (*streamConn)(nil)
 
-func (c streamConn) CloseWrite() error {
-	return nil
-}
+func (c streamConn) CloseWrite() error { _ = "STUB: not implemented"; return nil }
 
-func (c streamConn) CloseRead() error {
-	return nil
-}
+func (c streamConn) CloseRead() error { _ = "STUB: not implemented"; return nil }

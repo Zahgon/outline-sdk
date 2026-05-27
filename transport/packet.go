@@ -16,7 +16,6 @@ package transport
 
 import (
 	"context"
-	"fmt"
 	"net"
 )
 
@@ -39,7 +38,8 @@ var _ PacketEndpoint = (*UDPEndpoint)(nil)
 
 // ConnectPacket implements [PacketEndpoint].ConnectPacket.
 func (e UDPEndpoint) ConnectPacket(ctx context.Context) (net.Conn, error) {
-	return e.Dialer.DialContext(ctx, "udp", e.Address)
+	_ = "STUB: not implemented"
+	return *new(net.Conn), nil
 }
 
 // FuncPacketEndpoint is a [PacketEndpoint] that uses the given function to connect.
@@ -49,10 +49,12 @@ var _ PacketEndpoint = (*FuncPacketEndpoint)(nil)
 
 // ConnectPacket implements the [PacketEndpoint] interface.
 func (f FuncPacketEndpoint) ConnectPacket(ctx context.Context) (net.Conn, error) {
-	return f(ctx)
+	_ = "STUB: not implemented"
+
+	// PacketDialerEndpoint is a [PacketEndpoint] that connects to the given address using the specified [PacketDialer].
+	return *new(net.Conn), nil
 }
 
-// PacketDialerEndpoint is a [PacketEndpoint] that connects to the given address using the specified [PacketDialer].
 type PacketDialerEndpoint struct {
 	Dialer  PacketDialer
 	Address string
@@ -62,7 +64,8 @@ var _ PacketEndpoint = (*PacketDialerEndpoint)(nil)
 
 // ConnectPacket implements [PacketEndpoint].ConnectPacket.
 func (e *PacketDialerEndpoint) ConnectPacket(ctx context.Context) (net.Conn, error) {
-	return e.Dialer.DialPacket(ctx, e.Address)
+	_ = "STUB: not implemented"
+	return *new(net.Conn), nil
 }
 
 // PacketDialer provides a way to dial a destination and establish datagram connections.
@@ -82,7 +85,8 @@ var _ PacketDialer = (*UDPDialer)(nil)
 
 // DialPacket implements [PacketDialer].DialPacket.
 func (d *UDPDialer) DialPacket(ctx context.Context, addr string) (net.Conn, error) {
-	return d.Dialer.DialContext(ctx, "udp", addr)
+	_ = "STUB: not implemented"
+	return *new(net.Conn), nil
 }
 
 // PacketListenerDialer is a [PacketDialer] that connects to the destination using the specified [PacketListener].
@@ -106,47 +110,32 @@ var _ net.Conn = (*boundPacketConn)(nil)
 // For example, a [net.UDPConn] only supports IP addresses, not domain names.
 // If the host is a domain name, consider pre-resolving it to avoid resolution calls.
 func (e PacketListenerDialer) DialPacket(ctx context.Context, address string) (net.Conn, error) {
-	netAddr, err := MakeNetAddr("udp", address)
-	if err != nil {
-		return nil, err
-	}
-	packetConn, err := e.Listener.ListenPacket(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("could not create PacketConn: %w", err)
-	}
-	return &boundPacketConn{
-		PacketConn: packetConn,
-		remoteAddr: netAddr,
-	}, nil
+	_ = "STUB: not implemented"
+	return *new(net.Conn), nil
 }
 
 // Read implements [net.Conn].Read.
 func (c *boundPacketConn) Read(packet []byte) (int, error) {
-	for {
-		n, remoteAddr, err := c.PacketConn.ReadFrom(packet)
-		if err != nil {
-			return n, err
-		}
-		if remoteAddr.String() != c.remoteAddr.String() {
-			continue
-		}
-		return n, nil
-	}
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // Write implements [net.Conn].Write.
 func (c *boundPacketConn) Write(packet []byte) (int, error) {
+	_ = "STUB: not implemented"
 	// This may return syscall.EINVAL if remoteAddr is a name like localhost or [::].
-	n, err := c.PacketConn.WriteTo(packet, c.remoteAddr)
-	return n, err
+	return 0, nil
 }
 
 // RemoteAddr implements [net.Conn].RemoteAddr.
 func (c *boundPacketConn) RemoteAddr() net.Addr {
-	return c.remoteAddr
+	_ = "STUB: not implemented"
+	return *
+
+	// PacketListener provides a way to create a local unbound packet connection to send packets to different destinations.
+	new(net.Addr)
 }
 
-// PacketListener provides a way to create a local unbound packet connection to send packets to different destinations.
 type PacketListener interface {
 	// ListenPacket creates a PacketConn that can be used to relay packets (such as UDP) through a proxy.
 	ListenPacket(ctx context.Context) (net.PacketConn, error)
@@ -163,7 +152,8 @@ var _ PacketListener = (*UDPListener)(nil)
 
 // ListenPacket implements [PacketListener].ListenPacket
 func (l UDPListener) ListenPacket(ctx context.Context) (net.PacketConn, error) {
-	return l.ListenConfig.ListenPacket(ctx, "udp", l.Address)
+	_ = "STUB: not implemented"
+	return *new(net.PacketConn), nil
 }
 
 // FuncPacketDialer is a [PacketDialer] that uses the given function to dial.
@@ -173,5 +163,6 @@ var _ PacketDialer = (*FuncPacketDialer)(nil)
 
 // DialPacket implements the [PacketDialer] interface.
 func (f FuncPacketDialer) DialPacket(ctx context.Context, addr string) (net.Conn, error) {
-	return f(ctx, addr)
+	_ = "STUB: not implemented"
+	return *new(net.Conn), nil
 }

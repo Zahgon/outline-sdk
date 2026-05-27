@@ -16,7 +16,6 @@ package smart
 
 import (
 	"context"
-	"strings"
 	"sync"
 	"time"
 
@@ -27,14 +26,7 @@ import (
 // canonicalName returns the domain name in canonical form. A name in canonical
 // form is lowercase and fully qualified. Only US-ASCII letters are affected. See
 // Section 6.2 in RFC 4034.
-func canonicalName(s string) string {
-	return strings.Map(func(r rune) rune {
-		if r >= 'A' && r <= 'Z' {
-			r += 'a' - 'A'
-		}
-		return r
-	}, s)
-}
+func canonicalName(s string) string { _ = "STUB: not implemented"; return "" }
 
 type cacheEntry struct {
 	key    string
@@ -54,73 +46,35 @@ type simpleLRUCacheResolver struct {
 var _ dns.Resolver = (*simpleLRUCacheResolver)(nil)
 
 func newSimpleLRUCacheResolver(resolver dns.Resolver, numEntries int) dns.Resolver {
-	return &simpleLRUCacheResolver{resolver: resolver, cache: make([]cacheEntry, numEntries)}
+	_ = "STUB: not implemented"
+	return *new(dns.Resolver)
 }
 
-func (r *simpleLRUCacheResolver) RemoveExpired() {
-	now := time.Now()
-	last := 0
-	r.mux.Lock()
-	defer r.mux.Unlock()
-	for _, entry := range r.cache {
-		if entry.expire.After(now) {
-			r.cache[last] = entry
-			last++
-		}
-	}
-	r.cache = r.cache[:last]
-}
+func (r *simpleLRUCacheResolver) RemoveExpired() { _ = "STUB: not implemented"; return }
 
-func (r *simpleLRUCacheResolver) moveToFront(index int) {
-	moveToFront(r.cache, index)
-}
+func (r *simpleLRUCacheResolver) moveToFront(index int) { _ = "STUB: not implemented"; return }
 
-func makeCacheKey(q dnsmessage.Question) string {
-	domainKey := canonicalName(q.Name.String())
-	return strings.Join([]string{domainKey, q.Type.String(), q.Class.String()}, "|")
-}
+func makeCacheKey(q dnsmessage.Question) string { _ = "STUB: not implemented"; return "" }
 
 func (r *simpleLRUCacheResolver) SearchCache(key string) *dnsmessage.Message {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-	for ei, entry := range r.cache {
-		if entry.key == key {
-			r.moveToFront(ei)
-			// TODO: update TTLs
-			// TODO: make names match
-			return entry.msg
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
+// TODO: update TTLs
+// TODO: make names match
+
 func (r *simpleLRUCacheResolver) AddToCache(key string, msg *dnsmessage.Message) {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-	newSize := len(r.cache) + 1
-	if newSize > cap(r.cache) {
-		newSize = cap(r.cache)
-	}
-	r.cache = r.cache[:newSize]
-	copy(r.cache[1:], r.cache[:newSize-1])
-	// TODO: copy and normalize names
-	r.cache[0] = cacheEntry{key: key, msg: msg, expire: time.Now().Add(60 * time.Second)}
+	_ = "STUB: not implemented"
+	return
 }
+
+// TODO: copy and normalize names
 
 // Query implements [dns.Resolver].
 func (r *simpleLRUCacheResolver) Query(ctx context.Context, q dnsmessage.Question) (*dnsmessage.Message, error) {
-	r.RemoveExpired()
-	cacheKey := makeCacheKey(q)
-	if msg := r.SearchCache(cacheKey); msg != nil {
-		return msg, nil
-	}
-	msg, err := r.resolver.Query(ctx, q)
-	if err != nil {
-		// TODO: cache server failures. See https://datatracker.ietf.org/doc/html/rfc2308.
-		return nil, err
-	}
-	if msg.RCode == dnsmessage.RCodeSuccess || msg.RCode == dnsmessage.RCodeNameError {
-		r.AddToCache(cacheKey, msg)
-	}
-	return msg, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// TODO: cache server failures. See https://datatracker.ietf.org/doc/html/rfc2308.

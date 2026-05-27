@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -31,12 +30,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/lmittmann/tint"
 	"golang.getoutline.org/sdk/dns"
 	"golang.getoutline.org/sdk/transport"
 	"golang.getoutline.org/sdk/x/configurl"
 	"golang.getoutline.org/sdk/x/connectivity"
 	"golang.getoutline.org/sdk/x/report"
-	"github.com/lmittmann/tint"
 	"golang.org/x/term"
 )
 
@@ -84,33 +83,13 @@ type errorJSON struct {
 }
 
 func makeErrorRecord(result *connectivity.ConnectivityError) *errorJSON {
-	if result == nil {
-		return nil
-	}
-	var record = new(errorJSON)
-	record.Op = result.Op
-	record.PosixError = result.PosixError
-	record.Msg = unwrapAll(result.Err).Error()
-	return record
+	_ = "STUB: not implemented"
+	return nil
 }
 
-func unwrapAll(err error) error {
-	for {
-		unwrapped := errors.Unwrap(err)
-		if unwrapped == nil {
-			return err
-		}
-		err = unwrapped
-	}
-}
+func unwrapAll(err error) error { _ = "STUB: not implemented"; return nil }
 
-func (r connectivityReport) IsSuccess() bool {
-	if r.Test.Error == nil {
-		return true
-	} else {
-		return false
-	}
-}
+func (r connectivityReport) IsSuccess() bool { _ = "STUB: not implemented"; return false }
 
 func init() {
 	flag.Usage = func() {
@@ -121,45 +100,14 @@ func init() {
 func newTCPTraceDialer(
 	onDNS func(ctx context.Context, domain string) func(di httptrace.DNSDoneInfo),
 	onDial func(ctx context.Context, network, addr string, connErr error)) transport.StreamDialer {
-	dialer := &transport.TCPDialer{}
-	var onDNSDone func(di httptrace.DNSDoneInfo)
-	return transport.FuncStreamDialer(func(ctx context.Context, addr string) (transport.StreamConn, error) {
-		ctx = httptrace.WithClientTrace(ctx, &httptrace.ClientTrace{
-			DNSStart: func(di httptrace.DNSStartInfo) {
-				onDNSDone = onDNS(ctx, di.Host)
-			},
-			DNSDone: func(di httptrace.DNSDoneInfo) {
-				if onDNSDone != nil {
-					onDNSDone(di)
-					onDNSDone = nil
-				}
-			},
-			ConnectDone: func(network, addr string, connErr error) {
-				onDial(ctx, network, addr, connErr)
-			},
-		})
-		return dialer.DialStream(ctx, addr)
-	})
+	_ = "STUB: not implemented"
+	return *new(transport.StreamDialer)
 }
 
 func newUDPTraceDialer(
 	onDNS func(ctx context.Context, domain string) func(di httptrace.DNSDoneInfo)) transport.PacketDialer {
-	dialer := &transport.UDPDialer{}
-	var onDNSDone func(di httptrace.DNSDoneInfo)
-	return transport.FuncPacketDialer(func(ctx context.Context, addr string) (net.Conn, error) {
-		ctx = httptrace.WithClientTrace(ctx, &httptrace.ClientTrace{
-			DNSStart: func(di httptrace.DNSStartInfo) {
-				onDNSDone = onDNS(ctx, di.Host)
-			},
-			DNSDone: func(di httptrace.DNSDoneInfo) {
-				if onDNSDone != nil {
-					onDNSDone(di)
-					onDNSDone = nil
-				}
-			},
-		})
-		return dialer.DialPacket(ctx, addr)
-	})
+	_ = "STUB: not implemented"
+	return *new(transport.PacketDialer)
 }
 
 func main() {

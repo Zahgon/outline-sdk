@@ -16,7 +16,6 @@ package shadowsocks
 
 import (
 	"errors"
-	"io"
 )
 
 // ErrShortPacket indicates that the destination packet given to Unpack is too short.
@@ -31,29 +30,14 @@ var zeroNonce [12]byte
 // function will panic.
 // It uses the given [SaltGenerator] to generate the salt.
 func PackSalt(dst, plaintext []byte, key *EncryptionKey, sg SaltGenerator) ([]byte, error) {
-	saltSize := key.SaltSize()
-	if len(dst) < saltSize {
-		return nil, io.ErrShortBuffer
-	}
-	salt := dst[:saltSize]
-	if err := sg.GetSalt(salt); err != nil {
-		return nil, err
-	}
-
-	aead, err := key.NewAEAD(salt)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(dst) < saltSize+len(plaintext)+aead.Overhead() {
-		return nil, io.ErrShortBuffer
-	}
-	return aead.Seal(salt, zeroNonce[:aead.NonceSize()], plaintext, nil), nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // Pack calls PackSalt with the [RandomSaltGenerator].
 func Pack(dst, plaintext []byte, key *EncryptionKey) ([]byte, error) {
-	return PackSalt(dst, plaintext, key, RandomSaltGenerator)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // Unpack decrypts a Shadowsocks-UDP packet in the format [salt][cipherText][AEAD tag] and returns a slice containing
@@ -61,28 +45,6 @@ func Pack(dst, plaintext []byte, key *EncryptionKey) ([]byte, error) {
 // If dst is present, it is used to store the plaintext, and must have enough capacity.
 // If dst is nil, decryption proceeds in-place.
 func Unpack(dst, pkt []byte, key *EncryptionKey) ([]byte, error) {
-	saltSize := key.SaltSize()
-	if len(pkt) < saltSize {
-		return nil, ErrShortPacket
-	}
-
-	salt := pkt[:saltSize]
-	cipherTextAndTag := pkt[saltSize:]
-	if len(cipherTextAndTag) < key.TagSize() {
-		return nil, io.ErrUnexpectedEOF
-	}
-
-	if dst == nil {
-		dst = cipherTextAndTag
-	}
-	if cap(dst) < len(cipherTextAndTag)-key.TagSize() {
-		return nil, io.ErrShortBuffer
-	}
-
-	aead, err := key.NewAEAD(salt)
-	if err != nil {
-		return nil, err
-	}
-
-	return aead.Open(dst[:0], zeroNonce[:aead.NonceSize()], cipherTextAndTag, nil)
+	_ = "STUB: not implemented"
+	return nil, nil
 }

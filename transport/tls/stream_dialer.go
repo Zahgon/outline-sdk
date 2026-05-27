@@ -18,10 +18,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
-	"fmt"
-	"net"
-	"strings"
 
 	"golang.getoutline.org/sdk/transport"
 )
@@ -39,10 +35,8 @@ var _ transport.StreamDialer = (*StreamDialer)(nil)
 // NewStreamDialer creates a [StreamDialer] that wraps the connections from the baseDialer with TLS
 // configured with the given options.
 func NewStreamDialer(baseDialer transport.StreamDialer, options ...ClientOption) (*StreamDialer, error) {
-	if baseDialer == nil {
-		return nil, errors.New("base dialer must not be nil")
-	}
-	return &StreamDialer{baseDialer, options}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // streamConn wraps a [tls.Conn] to provide a [transport.StreamConn] interface.
@@ -53,36 +47,17 @@ type streamConn struct {
 
 var _ transport.StreamConn = (*streamConn)(nil)
 
-func (c streamConn) CloseWrite() error {
-	tlsErr := c.Conn.CloseWrite()
-	return errors.Join(tlsErr, c.innerConn.CloseWrite())
-}
+func (c streamConn) CloseWrite() error { _ = "STUB: not implemented"; return nil }
 
-func (c streamConn) CloseRead() error {
-	return c.innerConn.CloseRead()
-}
+func (c streamConn) CloseRead() error { _ = "STUB: not implemented"; return nil }
 
 // DialStream implements [transport.StreamDialer].DialStream.
 func (d *StreamDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
-	host, _, err := net.SplitHostPort(remoteAddr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid address: %w", err)
-	}
-	innerConn, err := d.dialer.DialStream(ctx, remoteAddr)
-	if err != nil {
-		return nil, err
-	}
-	conn, err := WrapConn(ctx, innerConn, host, d.options...)
-	if err != nil {
-		innerConn.Close()
-		return nil, err
-	}
-	return conn, nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamConn), nil
 }
 
-func normalizeHost(host string) string {
-	return strings.ToLower(host)
-}
+func normalizeHost(host string) string { _ = "STUB: not implemented"; return "" }
 
 // ClientConfig holds configuration parameters used for establishing a TLS client connection.
 type ClientConfig struct {
@@ -106,71 +81,34 @@ type ClientConfig struct {
 }
 
 // ToGoTLSConfig converts the ClientConfig to a [tls.Config].
-func ToGoTLSConfig(cfg *ClientConfig) *tls.Config {
-	return cfg.toStdConfig()
-}
+func ToGoTLSConfig(cfg *ClientConfig) *tls.Config { _ = "STUB: not implemented"; return nil }
 
 // toStdConfig creates a [tls.Config] based on the configured parameters.
-func (cfg *ClientConfig) toStdConfig() *tls.Config {
-	certVerifier := cfg.CertVerifier
-	if certVerifier == nil {
-		certVerifier = &StandardCertVerifier{CertificateName: cfg.ServerName}
-	}
-	return &tls.Config{
-		ServerName:         cfg.ServerName,
-		NextProtos:         cfg.NextProtos,
-		ClientSessionCache: cfg.SessionCache,
-		// Set InsecureSkipVerify to skip the default validation we are
-		// replacing. This will not disable VerifyConnection.
-		InsecureSkipVerify: true,
-		VerifyConnection: func(cs tls.ConnectionState) error {
-			return certVerifier.VerifyCertificate(&CertVerificationContext{
-				PeerCertificates: cs.PeerCertificates,
-			})
-		},
-	}
-}
+func (cfg *ClientConfig) toStdConfig() *tls.Config { _ = "STUB: not implemented"; return nil }
+
+// Set InsecureSkipVerify to skip the default validation we are
+// replacing. This will not disable VerifyConnection.
 
 // WrapConn wraps a [transport.StreamConn] in a TLS connection.
 func WrapConn(ctx context.Context, conn transport.StreamConn, serverName string, options ...ClientOption) (transport.StreamConn, error) {
-	cfg := ClientConfig{ServerName: serverName}
-	normName := normalizeHost(serverName)
-	for _, option := range options {
-		option(normName, &cfg)
-	}
-	if cfg.CertVerifier == nil {
-		// If CertVerifier is not provided, use the default verification logic,
-		// which validates the peer certificate against the provided serverName.
-		cfg.CertVerifier = &StandardCertVerifier{CertificateName: serverName}
-	}
-	tlsConn := tls.Client(conn, cfg.toStdConfig())
-	err := tlsConn.HandshakeContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return streamConn{tlsConn, conn}, nil
+	_ = "STUB: not implemented"
+	return *new(transport.StreamConn), nil
 }
+
+// If CertVerifier is not provided, use the default verification logic,
+// which validates the peer certificate against the provided serverName.
 
 // WithSNI sets the host name for [Server Name Indication] (SNI).
 // If absent, defaults to the dialed hostname.
 // Note that this only changes what is sent in the SNI, not what host is used for certificate verification.
 //
 // [Server Name Indication]: https://datatracker.ietf.org/doc/html/rfc6066#section-3
-func WithSNI(hostName string) ClientOption {
-	return func(_ string, config *ClientConfig) {
-		config.ServerName = hostName
-	}
-}
+func WithSNI(hostName string) ClientOption { _ = "STUB: not implemented"; return *new(ClientOption) }
 
 // IfHost applies the given option if the host matches the dialed one.
 func IfHost(matchHost string, option ClientOption) ClientOption {
-	matchHost = normalizeHost(matchHost)
-	return func(host string, config *ClientConfig) {
-		if matchHost != "" && matchHost != host {
-			return
-		}
-		option(host, config)
-	}
+	_ = "STUB: not implemented"
+	return *new(ClientOption)
 }
 
 // WithALPN sets the protocol name list for [Application-Layer Protocol Negotiation] (ALPN).
@@ -179,23 +117,20 @@ func IfHost(matchHost string, option ClientOption) ClientOption {
 // [Application-Layer Protocol Negotiation]: https://datatracker.ietf.org/doc/html/rfc7301
 // [IANA's registry]: https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids
 func WithALPN(protocolNameList []string) ClientOption {
-	return func(_ string, config *ClientConfig) {
-		config.NextProtos = protocolNameList
-	}
+	_ = "STUB: not implemented"
+	return *new(ClientOption)
 }
 
 // WithSessionCache sets the [tls.ClientSessionCache] to enable session resumption of TLS connections.
 func WithSessionCache(sessionCache tls.ClientSessionCache) ClientOption {
-	return func(_ string, config *ClientConfig) {
-		config.SessionCache = sessionCache
-	}
+	_ = "STUB: not implemented"
+	return *new(ClientOption)
 }
 
 // WithCertVerifier sets the verifier to be used for the certificate verification.
 func WithCertVerifier(verifier CertVerifier) ClientOption {
-	return func(_ string, config *ClientConfig) {
-		config.CertVerifier = verifier
-	}
+	_ = "STUB: not implemented"
+	return *new(ClientOption)
 }
 
 // CertVerificationContext provides connection-time context for the certificate verification.
@@ -230,20 +165,12 @@ type StandardCertVerifier struct {
 
 // VerifyCertificate implements [CertVerifier].
 func (v *StandardCertVerifier) VerifyCertificate(certContext *CertVerificationContext) error {
+	_ = "STUB: not implemented"
 	// This replicates the logic in the standard library verification:
 	// https://cs.opensource.google/go/go/+/master:src/crypto/tls/handshake_client.go;l=982;drc=b5f87b5407916c4049a3158cc944cebfd7a883a9
 	// And the documentation example:
 	// https://pkg.go.dev/crypto/tls#example-Config-VerifyConnection
-	opts := x509.VerifyOptions{
-		DNSName:       v.CertificateName,
-		Roots:         v.Roots,
-		Intermediates: x509.NewCertPool(),
-	}
-	for _, cert := range certContext.PeerCertificates[1:] {
-		opts.Intermediates.AddCert(cert)
-	}
-	_, err := certContext.PeerCertificates[0].Verify(opts)
-	return err
+	return nil
 }
 
 // ClientOption allows configuring the parameters to be used for a client TLS connection.

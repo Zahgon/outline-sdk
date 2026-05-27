@@ -15,52 +15,18 @@
 package configurl
 
 import (
-	"context"
-	"fmt"
 	"net/url"
-	"strings"
 
 	"golang.getoutline.org/sdk/transport"
 	"golang.getoutline.org/sdk/transport/tls"
 )
 
 func registerTLSStreamDialer(r TypeRegistry[transport.StreamDialer], typeID string, newSD BuildFunc[transport.StreamDialer]) {
-	r.RegisterType(typeID, func(ctx context.Context, config *Config) (transport.StreamDialer, error) {
-		sd, err := newSD(ctx, config.BaseConfig)
-		if err != nil {
-			return nil, err
-		}
-		options, err := parseOptions(config.URL)
-		if err != nil {
-			return nil, err
-		}
-		return tls.NewStreamDialer(sd, options...)
-	})
+	_ = "STUB: not implemented"
+	return
 }
 
 func parseOptions(configURL url.URL) ([]tls.ClientOption, error) {
-	query := configURL.Opaque
-	values, err := url.ParseQuery(query)
-	if err != nil {
-		return nil, err
-	}
-	options := []tls.ClientOption{}
-	for key, values := range values {
-		switch strings.ToLower(key) {
-		case "sni":
-			if len(values) != 1 {
-				return nil, fmt.Errorf("sni option must has one value, found %v", len(values))
-			}
-			options = append(options, tls.WithSNI(values[0]))
-		case "certname":
-			if len(values) != 1 {
-				return nil, fmt.Errorf("certName option must has one value, found %v", len(values))
-			}
-			options = append(options, tls.WithCertVerifier(&tls.StandardCertVerifier{CertificateName: values[0]}))
-		default:
-			return nil, fmt.Errorf("unsupported option %v", key)
-
-		}
-	}
-	return options, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }

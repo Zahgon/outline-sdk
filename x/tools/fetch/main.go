@@ -31,23 +31,18 @@ import (
 	"strings"
 	"time"
 
-	"golang.getoutline.org/sdk/x/configurl"
 	"github.com/lmittmann/tint"
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
+	"golang.getoutline.org/sdk/x/configurl"
 	"golang.org/x/term"
 )
 
 type stringArrayFlagValue []string
 
-func (v *stringArrayFlagValue) String() string {
-	return fmt.Sprint(*v)
-}
+func (v *stringArrayFlagValue) String() string { _ = "STUB: not implemented"; return "" }
 
-func (v *stringArrayFlagValue) Set(value string) error {
-	*v = append(*v, value)
-	return nil
-}
+func (v *stringArrayFlagValue) Set(value string) error { _ = "STUB: not implemented"; return nil }
 
 func init() {
 	flag.Usage = func() {
@@ -57,17 +52,8 @@ func init() {
 }
 
 func overrideAddress(original string, newHost string, newPort string) (string, error) {
-	host, port, err := net.SplitHostPort(original)
-	if err != nil {
-		return "", fmt.Errorf("invalid address: %w", err)
-	}
-	if newHost != "" {
-		host = newHost
-	}
-	if newPort != "" {
-		port = newPort
-	}
-	return net.JoinHostPort(host, port), nil
+	_ = "STUB: not implemented"
+	return "", nil
 }
 
 func main() {

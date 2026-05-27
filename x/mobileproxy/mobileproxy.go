@@ -19,14 +19,7 @@
 package mobileproxy
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"log"
-	"net"
 	"net/http"
-	"strconv"
-	"time"
 
 	"golang.getoutline.org/sdk/x/httpproxy"
 )
@@ -40,103 +33,57 @@ type Proxy struct {
 }
 
 // Address returns the IP and port the server is bound to.
-func (p *Proxy) Address() string {
-	return net.JoinHostPort(p.host, strconv.Itoa(p.port))
-}
+func (p *Proxy) Address() string { _ = "STUB: not implemented"; return "" }
 
 // Host returns the IP the server is bound to.
 func (p *Proxy) Host() string {
-	return p.host
+	_ = "STUB: not implemented"
+
+	// Port returns the port the server is bound to.
+	return ""
 }
 
-// Port returns the port the server is bound to.
 func (p *Proxy) Port() int {
-	return p.port
+	_ = "STUB: not implemented"
+
+	// AddURLProxy sets up a URL-based proxy handler that activates when an incoming HTTP request matches
+	// the specified path prefix. The pattern must represent a path segment, which is checked against
+	// the path of the incoming request.
+	//
+	// This function is particularly useful for libraries or components that accept URLs but do not support proxy
+	// configuration directly. By leveraging AddURLProxy, such components can route requests through a proxy by
+	// constructing URLs in the format "http://${HOST}:${PORT}/${PATH}/${URL}", where "${URL}" is the target resource.
+	// For instance, using "http://localhost:8080/proxy/https://example.com" routes the request for "https://example.com"
+	// through a proxy at "http://localhost:8080/proxy".
+	//
+	// The path should start with a forward slash ('/') for clarity, but one will be added if missing.
+	//
+	// The function associates the given 'dialer' with the specified 'path', allowing different dialers to be used for
+	// different path-based proxies within the same application in the future. currently we only support one URL proxy.
+	return 0
 }
 
-// AddURLProxy sets up a URL-based proxy handler that activates when an incoming HTTP request matches
-// the specified path prefix. The pattern must represent a path segment, which is checked against
-// the path of the incoming request.
-//
-// This function is particularly useful for libraries or components that accept URLs but do not support proxy
-// configuration directly. By leveraging AddURLProxy, such components can route requests through a proxy by
-// constructing URLs in the format "http://${HOST}:${PORT}/${PATH}/${URL}", where "${URL}" is the target resource.
-// For instance, using "http://localhost:8080/proxy/https://example.com" routes the request for "https://example.com"
-// through a proxy at "http://localhost:8080/proxy".
-//
-// The path should start with a forward slash ('/') for clarity, but one will be added if missing.
-//
-// The function associates the given 'dialer' with the specified 'path', allowing different dialers to be used for
-// different path-based proxies within the same application in the future. currently we only support one URL proxy.
-func (p *Proxy) AddURLProxy(path string, dialer *StreamDialer) {
-	if p.proxyHandler == nil {
-		// Called after Stop. Warn and ignore.
-		log.Println("Called Proxy.AddURLProxy after Stop")
-		return
-	}
-	if len(path) == 0 || path[0] != '/' {
-		path = "/" + path
-	}
-	// TODO(fortuna): Add support for multiple paths. I tried http.ServeMux, but it does request sanitization,
-	// which breaks the URL extraction: https://pkg.go.dev/net/http#hdr-Request_sanitizing.
-	// We can consider forking http.StripPrefix to provide a fallback instead of NotFound, and chaing them.
-	p.proxyHandler.FallbackHandler = http.StripPrefix(path, httpproxy.NewPathHandler(dialer.StreamDialer))
-}
+func (p *Proxy) AddURLProxy(path string, dialer *StreamDialer) { _ = "STUB: not implemented"; return }
+
+// Called after Stop. Warn and ignore.
+
+// TODO(fortuna): Add support for multiple paths. I tried http.ServeMux, but it does request sanitization,
+// which breaks the URL extraction: https://pkg.go.dev/net/http#hdr-Request_sanitizing.
+// We can consider forking http.StripPrefix to provide a fallback instead of NotFound, and chaing them.
 
 // Stop gracefully stops the proxy service, waiting for at most timeout seconds before forcefully closing it.
 // The function takes a timeoutSeconds number instead of a [time.Duration] so it's compatible with Go Mobile.
-func (p *Proxy) Stop(timeoutSeconds int) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
-	defer cancel()
-	if err := p.server.Shutdown(ctx); err != nil {
-		log.Fatalf("Failed to shutdown gracefully: %v", err)
-		p.server.Close()
-	}
-	// Allow garbage collection in case the user keeps holding a reference to the Proxy.
-	p.proxyHandler = nil
-	p.server = nil
-}
+func (p *Proxy) Stop(timeoutSeconds int) { _ = "STUB: not implemented"; return }
+
+// Allow garbage collection in case the user keeps holding a reference to the Proxy.
 
 // RunProxy runs a local web proxy that listens on localAddress, and handles proxy requests by
 // establishing connections to requested destination using the [StreamDialer].
 func RunProxy(localAddress string, dialer *StreamDialer) (*Proxy, error) {
-	listener, err := net.Listen("tcp", localAddress)
-	if err != nil {
-		return nil, fmt.Errorf("could not listen on address %v: %v", localAddress, err)
-	}
-	if dialer == nil {
-		return nil, errors.New("dialer must not be nil. Please create and pass a valid StreamDialer")
-	}
-
-	// The default http.Server doesn't close hijacked connections or cancel in-flight request contexts during
-	// shutdown. This can lead to lingering connections. We'll create a base context, propagated to requests,
-	// that is cancelled on shutdown. This enables handlers to gracefully terminate requests and close connections.
-	serverCtx, cancelCtx := context.WithCancelCause(context.Background())
-	proxyHandler := httpproxy.NewProxyHandler(dialer)
-	proxyHandler.FallbackHandler = http.NotFoundHandler()
-	server := &http.Server{
-		Handler: proxyHandler,
-		BaseContext: func(l net.Listener) context.Context {
-			return serverCtx
-		},
-	}
-	server.RegisterOnShutdown(func() {
-		cancelCtx(errors.New("server stopped"))
-	})
-	go server.Serve(listener)
-
-	host, portStr, err := net.SplitHostPort(listener.Addr().String())
-	if err != nil {
-		return nil, fmt.Errorf("could not parse proxy address '%v': %v", listener.Addr().String(), err)
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse proxy port '%v': %v", portStr, err)
-	}
-	return &Proxy{
-		host:         host,
-		port:         port,
-		server:       server,
-		proxyHandler: proxyHandler,
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// The default http.Server doesn't close hijacked connections or cancel in-flight request contexts during
+// shutdown. This can lead to lingering connections. We'll create a base context, propagated to requests,
+// that is cancelled on shutdown. This enables handlers to gracefully terminate requests and close connections.
